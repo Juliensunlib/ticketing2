@@ -182,6 +182,11 @@ ${email.body || email.snippet}`;
         }
         
         console.log('🎫 Création du ticket avec les données:', ticketData);
+        console.log('🔍 Type d\'abonné:', subscriberType);
+        console.log('🔍 Email manuel:', manualEmail);
+        console.log('🔍 Nom manuel:', manualSubscriberName);
+        console.log('🔍 Données formData complètes:', formData);
+        
         await createTicket(ticketData);
         
         console.log('✅ Ticket créé depuis email avec succès');
@@ -196,8 +201,23 @@ ${email.body || email.snippet}`;
         onSuccess();
         onClose();
       } catch (error) {
-        console.error('Erreur lors de la création du ticket:', error);
-        setErrors({ general: `Erreur lors de la création du ticket: ${error instanceof Error ? error.message : 'Erreur inconnue'}` });
+        console.error('❌ ERREUR DÉTAILLÉE lors de la création du ticket:', error);
+        console.error('❌ Type d\'erreur:', typeof error);
+        console.error('❌ Constructeur:', error?.constructor?.name);
+        console.error('❌ Message:', error instanceof Error ? error.message : String(error));
+        console.error('❌ Stack:', error instanceof Error ? error.stack : 'Pas de stack');
+        console.error('❌ Erreur complète:', JSON.stringify(error, null, 2));
+        
+        let errorMessage = 'Erreur inconnue';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error && typeof error === 'object') {
+          errorMessage = JSON.stringify(error);
+        }
+        
+        setErrors({ general: `Erreur lors de la création du ticket: ${errorMessage}` });
       }
     }
   };

@@ -106,11 +106,13 @@ export const useSupabaseTickets = () => {
   const createTicket = async (ticketData: Omit<SupabaseTicket, 'id' | 'created_at' | 'updated_at' | 'comments' | 'attachments'>) => {
     try {
       if (!user) {
+        console.error('❌ useSupabaseTickets.createTicket - Utilisateur non connecté');
         throw new Error('Utilisateur non connecté');
       }
 
       console.log('🔍 useSupabaseTickets.createTicket - Début création');
       console.log('Recherche de l\'utilisateur par email:', user.email);
+      console.log('🔍 Auth user complet:', user);
 
       // Chercher l'utilisateur existant par email
       const { data: existingUser, error: findError } = await supabase
@@ -121,10 +123,18 @@ export const useSupabaseTickets = () => {
 
       if (findError) {
         console.error('Erreur lors de la recherche de l\'utilisateur:', findError);
+        console.error('❌ Détails findError:', JSON.stringify(findError, null, 2));
         throw new Error(`Impossible de trouver l\'utilisateur: ${findError.message}`);
       }
 
       if (!existingUser) {
+        console.error('❌ Utilisateur non trouvé dans la table users');
+        console.error('❌ Email recherché:', user.email);
+        
+        // Lister tous les utilisateurs pour debug
+        const { data: allUsers } = await supabase.from('users').select('id, email, name');
+        console.log('❌ Utilisateurs disponibles:', allUsers);
+        
         throw new Error(`Utilisateur avec l'email ${user.email} non trouvé dans la table users. Veuillez contacter l'administrateur.`);
       }
 
@@ -154,6 +164,10 @@ export const useSupabaseTickets = () => {
 
       if (supabaseError) {
         console.error('❌ Erreur Supabase lors de l\'insertion:', supabaseError);
+        console.error('❌ Code erreur:', supabaseError.code);
+        console.error('❌ Message erreur:', supabaseError.message);
+        console.error('❌ Détails erreur:', supabaseError.details);
+        console.error('❌ Hint erreur:', supabaseError.hint);
         throw supabaseError;
       }
 
@@ -169,6 +183,8 @@ export const useSupabaseTickets = () => {
       return data;
     } catch (err) {
       console.error('❌ Erreur lors de la création du ticket:', err);
+      console.error('❌ Type d\'erreur dans useSupabaseTickets:', typeof err);
+      console.error('❌ Erreur complète dans useSupabaseTickets:', JSON.stringify(err, null, 2));
       throw err;
     }
   };

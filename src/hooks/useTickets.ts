@@ -64,30 +64,37 @@ export const useTickets = () => {
 
   const createTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'comments' | 'attachments'>) => {
     if (!user) {
+      console.error('❌ useTickets.createTicket - Utilisateur non connecté');
       throw new Error('Utilisateur non connecté');
     }
 
     console.log('🔍 useTickets.createTicket - Données reçues:', ticketData);
     console.log('🔍 useTickets.createTicket - Utilisateur:', user.email);
+    console.log('🔍 useTickets.createTicket - ID utilisateur:', user.id);
     
-    const supabaseTicketData = {
-      title: ticketData.title,
-      description: ticketData.description,
-      priority: ticketData.priority,
-      status: ticketData.status,
-      type: ticketData.type,
-      origin: ticketData.origin,
-      channel: ticketData.channel,
-      created_by: user.id,
-      assigned_to: ticketData.assignedTo,
-      subscriber_id: ticketData.subscriberId,
-      subscriber_name: ticketData.subscriberId, // Le nom complet est déjà dans subscriberId
-      installer_id: ticketData.installerId
-    };
+    try {
+      const supabaseTicketData = {
+        title: ticketData.title,
+        description: ticketData.description,
+        priority: ticketData.priority,
+        status: ticketData.status,
+        type: ticketData.type,
+        origin: ticketData.origin,
+        channel: ticketData.channel,
+        created_by: user.id,
+        assigned_to: ticketData.assignedTo || null,
+        subscriber_id: ticketData.subscriberId,
+        subscriber_name: ticketData.subscriberId, // Le nom complet est déjà dans subscriberId
+        installer_id: ticketData.installerId || null
+      };
 
-    console.log('🔍 useTickets.createTicket - Données Supabase:', supabaseTicketData);
-    
-    return createSupabaseTicket(supabaseTicketData);
+      console.log('🔍 useTickets.createTicket - Données Supabase:', supabaseTicketData);
+      
+      return createSupabaseTicket(supabaseTicketData);
+    } catch (error) {
+      console.error('❌ useTickets.createTicket - Erreur lors de la préparation:', error);
+      throw error;
+    }
   };
 
   const updateTicket = (ticketId: string, updates: Partial<Ticket>) => {
