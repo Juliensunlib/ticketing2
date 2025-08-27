@@ -4,6 +4,7 @@ import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { useAirtable } from '../../hooks/useAirtable';
 import { Search, FileText, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { Ticket } from '../../types';
 
 interface Email {
   id: string;
@@ -24,6 +25,7 @@ interface TicketFormFromEmailProps {
 
 const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClose, onSuccess }) => {
   const { createTicket } = useTickets();
+  const { tickets, addComment } = useTickets();
   const { users: employees } = useSupabaseUsers();
   const { subscribers, loadData } = useAirtable();
   
@@ -33,7 +35,7 @@ const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClos
   const [assignMode, setAssignMode] = useState<'new' | 'existing'>('new');
   const [existingTicketSearch, setExistingTicketSearch] = useState('');
   const [showExistingTicketDropdown, setShowExistingTicketDropdown] = useState(false);
-  const [selectedExistingTicket, setSelectedExistingTicket] = useState<any>(null);
+  const [selectedExistingTicket, setSelectedExistingTicket] = useState<Ticket | null>(null);
   const [manualSubscriberName, setManualSubscriberName] = useState('');
   const [manualEmail, setManualEmail] = useState('');
   
@@ -216,6 +218,7 @@ ${email.body || email.snippet}`;
       ticket.id.toLowerCase().includes(searchTerm)
     );
   });
+
   const handleSubscriberSelect = (subscriber: any) => {
     setFormData(prev => ({ ...prev, subscriberId: subscriber.id }));
     const subscriberDisplayName = `${subscriber.prenom} ${subscriber.nom} - ${subscriber.contratAbonne}`;
@@ -606,10 +609,13 @@ ${email.body || email.snippet}`;
         </form>
 
         {/* Overlay pour fermer le dropdown */}
-        {showSubscriberDropdown && (
+        {(showSubscriberDropdown || showExistingTicketDropdown) && (
           <div 
             className="fixed inset-0 z-5"
-            onClick={() => setShowSubscriberDropdown(false)}
+            onClick={() => {
+              setShowSubscriberDropdown(false);
+              setShowExistingTicketDropdown(false);
+            }}
           />
         )}
       </div>
