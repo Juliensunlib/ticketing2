@@ -10,7 +10,7 @@ class AirtableService {
   }
 
   private async makeRequest(baseId: string, tableName: string, method: 'GET' | 'POST' | 'PATCH' = 'GET', data?: any) {
-    const url = `https://api.airtable.com/v0/${baseId}/${tableName}`;
+    const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
     
     const options: RequestInit = {
       method,
@@ -18,6 +18,8 @@ class AirtableService {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
+      mode: 'cors',
+      cache: 'no-cache',
     };
 
     if (data && (method === 'POST' || method === 'PATCH')) {
@@ -32,7 +34,7 @@ class AirtableService {
         if (response.status === 401) {
           throw new Error(`Clé API Airtable invalide. Vérifiez VITE_AIRTABLE_API_KEY dans votre fichier .env`);
         } else if (response.status === 404) {
-          throw new Error(`Base ou table Airtable introuvable. Vérifiez VITE_AIRTABLE_SUBSCRIBERS_BASE_ID et le nom de la table`);
+          throw new Error(`Base ou table Airtable introuvable. Base ID: ${baseId}, Table: ${tableName}. Vérifiez VITE_AIRTABLE_SUBSCRIBERS_BASE_ID et le nom de la table`);
         } else if (response.status === 403) {
           throw new Error(`Accès refusé à Airtable. Vérifiez les permissions de votre clé API`);
         } else {
@@ -45,7 +47,14 @@ class AirtableService {
     } catch (error) {
       // Gestion spécifique de l'erreur "Failed to fetch"
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        throw new Error('Impossible de se connecter à Airtable. Vérifiez votre connexion internet et que les clés API sont correctes.');
+        console.error('❌ Détails de l\'erreur réseau:', {
+          url,
+          baseId,
+          tableName,
+          apiKeyPresent: !!this.apiKey,
+          apiKeyLength: this.apiKey?.length
+        });
+        throw new Error(`Impossible de se connecter à Airtable. URL: ${url}. Vérifiez votre connexion internet, les clés API et que la base/table existe.`);
       }
       
       throw error;

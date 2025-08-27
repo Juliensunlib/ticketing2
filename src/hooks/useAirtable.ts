@@ -70,6 +70,16 @@ export const useAirtable = () => {
     
     try {
       console.log(`📋 ${isRetry ? 'Nouvelle tentative' : 'Récupération'} des abonnés depuis Airtable`);
+      console.log('🔍 Test de connectivité réseau...');
+      
+      // Test de connectivité basique
+      try {
+        await fetch('https://api.airtable.com', { method: 'HEAD', mode: 'no-cors' });
+        console.log('✅ Connectivité réseau OK');
+      } catch (networkError) {
+        console.warn('⚠️ Problème de connectivité réseau détecté');
+      }
+      
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
       const subscribersData = await airtableServiceRef.current.getSubscribers();
@@ -82,6 +92,11 @@ export const useAirtable = () => {
       console.error('❌ Erreur lors du chargement des abonnés:', err);
       
       const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+      console.error('🔍 Détails de l\'erreur:', {
+        message: errorMessage,
+        type: err?.constructor?.name,
+        stack: err instanceof Error ? err.stack : 'N/A'
+      });
       
       // Retry logic
       if (retryCount < maxRetries - 1 && !errorMessage.includes('401') && !errorMessage.includes('403')) {
@@ -89,7 +104,7 @@ export const useAirtable = () => {
         setRetryCount(prev => prev + 1);
         setTimeout(() => {
           loadDataInternal(true);
-        }, 2000);
+        }, 3000);
         return;
       }
       
