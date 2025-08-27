@@ -43,7 +43,7 @@ export const useAirtable = () => {
     try {
       console.log('📋 Récupération des abonnés depuis Airtable...');
       const subscribersData = await service.getSubscribers();
-      console.log(`✅ ${subscribersData.length} abonnés récupérés avec succès`);
+      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable`);
 
       setSubscribers(subscribersData);
       
