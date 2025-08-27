@@ -433,7 +433,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Email du client */}
-                  {(subscriber?.email || getEmailFromDescription()) && (
+                  {subscriber?.email && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <AtSign className="w-3 h-3 mr-1" />
@@ -441,10 +441,32 @@ Priorité: ${currentTicket.priority}`;
                       </span>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {subscriber?.email || getEmailFromDescription()}
+                          {subscriber.email}
                         </span>
                         <a
-                          href={`mailto:${subscriber?.email || getEmailFromDescription()}`}
+                          href={`mailto:${subscriber.email}`}
+                          className="text-orange-600 hover:text-orange-700 transition-colors"
+                          title="Envoyer un email"
+                        >
+                          <Mail className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Email extrait de la description (pour les tickets créés depuis email) */}
+                  {!subscriber && getEmailFromDescription() && (
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm text-gray-600 flex items-center">
+                        <AtSign className="w-3 h-3 mr-1" />
+                        Email
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {getEmailFromDescription()}
+                        </span>
+                        <a
+                          href={`mailto:${getEmailFromDescription()}`}
                           className="text-orange-600 hover:text-orange-700 transition-colors"
                           title="Envoyer un email"
                         >
@@ -455,7 +477,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Téléphone du client (uniquement si client Airtable) */}
-                  {subscriber?.telephone && !isFromEmail() && (
+                  {subscriber?.telephone && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <Phone className="w-3 h-3 mr-1" />
