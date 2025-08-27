@@ -264,14 +264,25 @@ Priorité: ${currentTicket.priority}`;
 
   const TypeIcon = getTypeIcon(currentTicket.type);
 
-  // Trouver l'abonné correspondant dans Airtable
-  const subscriber = subscribers.find(sub => 
-    currentTicket.subscriberId && (
-      currentTicket.subscriberId.includes(sub.contratAbonne) || 
-      currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`) ||
-      (sub.email && currentTicket.subscriberId.includes(sub.email))
-    )
-  );
+  // Fonction pour détecter si c'est un client Airtable (format: "Prénom NOM - SL-XXXXXX")
+  const isAirtableClient = (subscriberId: string) => {
+    // Vérifier si le format contient "SL-" suivi de chiffres (contrat Airtable)
+    return /SL-\d{6}/.test(subscriberId);
+  };
+
+  // Fonction pour détecter si c'est un email externe (format: "Nom <email@domain.com>")
+  const isExternalEmail = (subscriberId: string) => {
+    // Vérifier si le format contient un email entre < >
+    return /<[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}>/.test(subscriberId);
+  };
+
+  // Trouver l'abonné correspondant dans Airtable SEULEMENT si c'est un client Airtable
+  const subscriber = currentTicket.subscriberId && isAirtableClient(currentTicket.subscriberId) 
+    ? subscribers.find(sub => 
+        currentTicket.subscriberId.includes(sub.contratAbonne) || 
+        currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`)
+      )
+    : null;
 
   // Fonction pour détecter si le ticket vient d'un email
   const isFromEmail = () => {
@@ -420,7 +431,7 @@ Priorité: ${currentTicket.priority}`;
                       {currentTicket.subscriberId}
                     </span>
                   </div>
-                  {subscriber?.lienCRM && (
+                  {subscriber?.lienCRM && isAirtableClient(currentTicket.subscriberId) && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600">Fiche CRM</span>
                       <a
@@ -436,7 +447,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Email du client */}
-                  {subscriber && subscriber.email && (
+                  {subscriber && subscriber.email && isAirtableClient(currentTicket.subscriberId) && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <AtSign className="w-3 h-3 mr-1" />
@@ -458,7 +469,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Email extrait de la description (pour les tickets créés depuis email) */}
-                  {(!subscriber || !subscriber.email) && getEmailFromDescription() && (
+                  {isExternalEmail(currentTicket.subscriberId) && getEmailFromDescription() && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <AtSign className="w-3 h-3 mr-1" />
@@ -480,7 +491,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Téléphone du client (uniquement si client Airtable) */}
-                  {subscriber && subscriber.telephone && (
+                  {subscriber && subscriber.telephone && isAirtableClient(currentTicket.subscriberId) && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <Phone className="w-3 h-3 mr-1" />
