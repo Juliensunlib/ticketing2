@@ -54,13 +54,20 @@ class AirtableService {
 
   async getSubscribers(): Promise<Subscriber[]> {
     try {
+      console.log('🔍 Tentative de connexion à Airtable...');
+      console.log('🔍 Base ID:', this.subscribersBaseId);
+      console.log('🔍 API Key:', this.apiKey.substring(0, 10) + '...');
+      
       const response = await this.makeRequest(this.subscribersBaseId, 'Abonnés');
       
       if (!response.records) {
+        console.warn('⚠️ Aucun record trouvé dans la réponse Airtable');
         return [];
       }
       
-      return response.records.map((record: any) => ({
+      console.log(`📊 ${response.records.length} records trouvés dans Airtable`);
+      
+      const subscribers = response.records.map((record: any) => ({
         id: record.id,
         nom: record.fields.Nom || '',
         prenom: record.fields.Prenom || '',
@@ -71,7 +78,11 @@ class AirtableService {
         email: record.fields.Email || record.fields['Adresse email'] || '',
         telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
       }));
+      
+      console.log('✅ Abonnés traités:', subscribers.slice(0, 3)); // Afficher les 3 premiers pour debug
+      return subscribers;
     } catch (error) {
+      console.error('❌ Erreur détaillée Airtable:', error);
       throw error;
     }
   }

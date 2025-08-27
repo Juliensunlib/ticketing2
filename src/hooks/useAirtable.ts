@@ -27,31 +27,32 @@ export const useAirtable = () => {
     if (config) {
       const service = new AirtableService(config.apiKey, config.subscribersBaseId);
       setAirtableService(service);
-      // Charger les données en arrière-plan sans bloquer l'interface
-      loadDataWithService(service).catch(() => {
-        // Erreur déjà gérée dans loadDataWithService
-      });
+      // Charger les données immédiatement
+      console.log('🔄 Chargement automatique des abonnés Airtable...');
+      loadDataWithService(service);
     } else {
       console.warn('Configuration Airtable manquante');
-      // Ne pas afficher d'erreur si la configuration est manquante
-      setError(null);
+      setError('Configuration Airtable manquante. Vérifiez le fichier .env');
     }
   }, []);
 
   const loadDataWithService = async (service: AirtableService) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      let subscribersData: Subscriber[] = [];
-
-      try {
-        subscribersData = await service.getSubscribers();
-      } catch (err) {
-        // Airtable non disponible - mode silencieux
-      }
+      console.log('📋 Récupération des abonnés depuis Airtable...');
+      const subscribersData = await service.getSubscribers();
+      console.log(`✅ ${subscribersData.length} abonnés récupérés avec succès`);
 
       setSubscribers(subscribersData);
       
     } catch (err) {
-      // Erreur silencieuse
+      console.error('❌ Erreur lors du chargement des abonnés:', err);
+      setError(`Erreur Airtable: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
+      setSubscribers([]); // S'assurer que la liste est vide en cas d'erreur
+    } finally {
+      setLoading(false);
     }
   };
 

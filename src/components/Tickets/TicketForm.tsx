@@ -37,13 +37,21 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
 
   useEffect(() => {
     console.log('TicketForm: Chargement des abonnés...');
-    loadData();
+    if (loadData) {
+      loadData();
+    }
   }, []);
 
   useEffect(() => {
     console.log('TicketForm: Données mises à jour');
-    console.log('Abonnés:', subscribers);
-    console.log('Employés Supabase:', employees);
+    console.log('📊 Nombre d\'abonnés Airtable:', subscribers.length);
+    console.log('👥 Nombre d\'employés Supabase:', employees.length);
+    
+    if (subscribers.length > 0) {
+      console.log('✅ Premiers abonnés:', subscribers.slice(0, 3).map(s => `${s.prenom} ${s.nom} - ${s.contratAbonne}`));
+    } else {
+      console.warn('⚠️ Aucun abonné chargé depuis Airtable');
+    }
   }, [subscribers, employees]);
 
   const handleSubmit = (e: React.FormEvent) => {
