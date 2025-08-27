@@ -4,6 +4,7 @@ import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 
 const Settings: React.FC = () => {
   const { users, loading: usersLoading, createUser } = useSupabaseUsers();
+  const { subscribers, loading: airtableLoading, error: airtableError, loadData } = useAirtable();
   
   // Vérifier la configuration Airtable depuis les variables d'environnement
   const airtableConfig = {
@@ -140,7 +141,7 @@ const Settings: React.FC = () => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-green-900 mb-2 flex items-center">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Configuration active - {subscribers.length} abonné{subscribers.length !== 1 ? 's' : ''} chargé{subscribers.length !== 1 ? 's' : ''}
+                Configuration active - {airtableLoading ? 'Chargement...' : `${subscribers.length} abonné${subscribers.length !== 1 ? 's' : ''} chargé${subscribers.length !== 1 ? 's' : ''}`}
               </h4>
               <div className="text-sm text-green-800 space-y-2">
                 <div className="flex items-center justify-between">
@@ -156,6 +157,11 @@ const Settings: React.FC = () => {
                 {airtableError && (
                   <div className="text-red-800 text-xs mt-2">
                     ⚠️ Erreur: {airtableError}
+                  </div>
+                )}
+                {airtableLoading && (
+                  <div className="text-blue-800 text-xs mt-2">
+                    🔄 Chargement des abonnés en cours...
                   </div>
                 )}
               </div>
@@ -215,25 +221,31 @@ const Settings: React.FC = () => {
           
           <div className="p-6">
             <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center"
-            >
-              <Database className="w-4 h-4 mr-2" />
-              Tester la connexion
-            </button>
-            <button
               onClick={() => {
-                // Forcer le rechargement des données
-                const { loadData } = require('../../hooks/useAirtable');
-                if (loadData) loadData();
+                console.log('🔄 Test de connexion Airtable demandé');
+                if (loadData) {
+                  loadData();
+                } else {
+                  console.error('❌ Fonction loadData non disponible');
+                }
               }}
-              className="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center"
+              disabled={airtableLoading}
             >
-              <Database className="w-4 h-4 mr-2" />
-              Recharger les données
+              {airtableLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Chargement...
+                </>
+              ) : (
+                <>
+                  <Database className="w-4 h-4 mr-2" />
+                  Tester la connexion
+                </>
+              )}
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              Testez la connexion et rechargez les données depuis Airtable
+              Testez la connexion et rechargez les données depuis Airtable. Vérifiez la console (F12) pour les détails.
             </p>
           </div>
         </div>

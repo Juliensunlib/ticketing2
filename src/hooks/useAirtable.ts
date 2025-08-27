@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AirtableService from '../services/airtable';
 import { Subscriber } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 // Configuration depuis les variables d'environnement
 const getAirtableConfig = () => {
@@ -16,40 +17,48 @@ const getAirtableConfig = () => {
 };
 
 export const useAirtable = () => {
+  const { user } = useAuth();
   const [airtableService, setAirtableService] = useState<AirtableService | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Debug: Afficher l'utilisateur connecté
+  useEffect(() => {
+    if (user) {
+      console.log('👤 Utilisateur connecté pour Airtable:', user.email);
+    }
+  }, [user]);
 
   useEffect(() => {
     const config = getAirtableConfig();
     if (config) {
+      console.log('🔧 Configuration Airtable détectée pour:', user?.email || 'utilisateur inconnu');
       const service = new AirtableService(config.apiKey, config.subscribersBaseId);
       setAirtableService(service);
       // Charger les données immédiatement
-      console.log('🔄 Chargement automatique des abonnés Airtable...');
+      console.log('🔄 Chargement automatique des abonnés Airtable pour:', user?.email || 'utilisateur inconnu');
       loadDataWithService(service);
     } else {
-      console.warn('Configuration Airtable manquante');
+      console.warn('⚠️ Configuration Airtable manquante pour:', user?.email || 'utilisateur inconnu');
       setError('Configuration Airtable manquante. Vérifiez le fichier .env');
     }
-  }, []);
+  }, [user]);
 
   const loadDataWithService = async (service: AirtableService) => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('📋 Récupération des abonnés depuis Airtable...');
+      console.log('📋 Récupération des abonnés depuis Airtable pour:', user?.email || 'utilisateur inconnu');
       const subscribersData = await service.getSubscribers();
-      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable`);
+      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable pour:`, user?.email || 'utilisateur inconnu');
 
       setSubscribers(subscribersData);
       
     } catch (err) {
-      console.error('❌ Erreur lors du chargement des abonnés:', err);
-      setError(`Erreur Airtable: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
+      console.error('❌ Erreur lors du chargement des abonnés pour:', user?.email || 'utilisateur inconnu', err);
+      setError(`Erreur Airtable pour ${user?.email}: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
       setSubscribers([]); // S'assurer que la liste est vide en cas d'erreur
     } finally {
       setLoading(false);
@@ -58,7 +67,7 @@ export const useAirtable = () => {
 
   const loadData = async () => {
     if (!airtableService) {
-      console.warn('Service Airtable non initialisé. Vérifiez la configuration dans le fichier .env');
+      console.warn('⚠️ Service Airtable non initialisé pour:', user?.email || 'utilisateur inconnu');
       setError('Service Airtable non configuré. Ajoutez vos clés API dans le fichier .env');
       return;
     }
@@ -67,15 +76,15 @@ export const useAirtable = () => {
     setError(null);
 
     try {
-      console.log('Rechargement des données Airtable...');
+      console.log('🔄 Rechargement des données Airtable pour:', user?.email || 'utilisateur inconnu');
       
       const subscribersData = await airtableService.getSubscribers();
 
-      console.log('Abonnés récupérés:', subscribersData);
+      console.log('✅ Abonnés récupérés pour:', user?.email || 'utilisateur inconnu', subscribersData.length);
 
       setSubscribers(subscribersData);
     } catch (err) {
-      console.error('Erreur lors du chargement des données Airtable:', err);
+      console.error('❌ Erreur lors du chargement des données Airtable pour:', user?.email || 'utilisateur inconnu', err);
       if (err instanceof Error && err.message.includes('Failed to fetch')) {
         setError('Connexion à Airtable impossible. Vérifiez votre connexion internet et vos clés API.');
       } else {

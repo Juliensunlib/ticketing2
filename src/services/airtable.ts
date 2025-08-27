@@ -56,7 +56,10 @@ class AirtableService {
     try {
       console.log('🔍 Tentative de connexion à Airtable...');
       console.log('🔍 Base ID:', this.subscribersBaseId);
-      console.log('🔍 API Key:', this.apiKey.substring(0, 10) + '...');
+      console.log('🔍 API Key (premiers caractères):', this.apiKey.substring(0, 10) + '...');
+      console.log('🔍 API Key (derniers caractères):', '...' + this.apiKey.slice(-10));
+      console.log('🔍 Longueur de la clé API:', this.apiKey.length);
+      console.log('🔍 Type de clé (PAT?):', this.apiKey.startsWith('pat') ? 'Personal Access Token' : 'Legacy API Key');
       
       // Récupérer tous les enregistrements avec pagination
       let allRecords: any[] = [];
@@ -68,6 +71,7 @@ class AirtableService {
         console.log(`📄 Récupération de la page ${pageCount}...`);
         
         const url = offset ? `Abonnés?offset=${offset}` : 'Abonnés';
+        console.log('🌐 URL de requête:', `https://api.airtable.com/v0/${this.subscribersBaseId}/${url}`);
         const response = await this.makeRequest(this.subscribersBaseId, url);
         
         if (response.records) {
