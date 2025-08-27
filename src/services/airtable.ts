@@ -122,7 +122,7 @@ class AirtableService {
       // Champs spécifiques à récupérer
       const fieldsToRetrieve = [
         'Nom', 'Prenom', 'Nom de l\'entreprise', 'Contrat abonné', 
-        'Téléphone', 'Email', 'Lien CRM'
+        'Téléphone', 'Email', 'Lien CRM', 'Installateur'
       ];
       
       console.log('🔧 Champs recherchés:', fieldsToRetrieve);
@@ -206,7 +206,7 @@ class AirtableService {
         prenom: record.fields['Prenom'] || '',
         contratAbonne: record.fields['Contrat abonné'] || '',
         nomEntreprise: record.fields['Nom de l\'entreprise'] || '',
-        installateur: '', // Pas dans vos champs
+        installateur: record.fields['Installateur'] || '',
         lienCRM: record.fields['Lien CRM'] || '',
         email: record.fields['Email'] || '',
         telephone: record.fields['Téléphone'] || '',

@@ -512,9 +512,22 @@ Priorité: ${currentTicket.priority}`;
                     </div>
                   )}
                   
+                  {/* Installateur depuis Airtable */}
+                  {subscriber && subscriber.installateur && isAirtableClient(currentTicket.subscriberId) && (
+                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                      <span className="text-sm text-gray-600 flex items-center">
+                        <Building className="w-3 h-3 mr-1" />
+                        Installateur
+                      </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {subscriber.installateur}
+                      </span>
+                    </div>
+                  )}
+                  
                   {currentTicket.installerId && (
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">Installateur</span>
+                      <span className="text-sm text-gray-600">Installateur (manuel)</span>
                       <span className="text-sm font-medium text-gray-900">{currentTicket.installerId}</span>
                     </div>
                   )}
