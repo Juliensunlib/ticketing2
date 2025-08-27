@@ -3,6 +3,7 @@ import { Save, X, Upload, User, Building, Users, Search, Paperclip } from 'lucid
 import { useTickets } from '../../hooks/useTickets';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { useAirtable } from '../../hooks/useAirtable';
+import { useAuth } from '../../contexts/AuthContext';
 import { Ticket } from '../../types';
 
 interface TicketFormProps {
@@ -15,6 +16,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
   const { createTicket, updateTicket } = useTickets();
   const { subscribers, loadData } = useAirtable();
   const { users: employees } = useSupabaseUsers();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     title: ticket?.title || '',
