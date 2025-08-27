@@ -218,7 +218,7 @@ const Settings: React.FC = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">Structure des bases Airtable requise :</h4>
             <div className="text-xs text-blue-800 space-y-1">
-              <p><strong>Base Abonnés (ID: {airtableConfig.subscribersBaseId || 'non configuré'}) :</strong></p>
+              <p><strong>Base "BDD Abonné" (ID: {airtableConfig.subscribersBaseId || 'non configuré'}) :</strong></p>
               <ul className="ml-4 space-y-1">
                 <li>• Table <strong>"Abonnés"</strong> (exactement ce nom) : Nom, Prenom, Contrat abonné, Email</li>
                 <li>• Table "Tickets" : pour synchronisation des tickets créés</li>
@@ -231,6 +231,7 @@ const Settings: React.FC = () => {
             <div className="text-xs text-yellow-800 space-y-1">
               <p><strong>✅ Clé API :</strong> Doit commencer par "pat" ou "key"</p>
               <p><strong>✅ Base ID :</strong> Doit commencer par "app" (trouvé dans l'URL)</p>
+              <p><strong>✅ Base Name :</strong> "BDD Abonné" dans Airtable</p>
               <p><strong>✅ Table "Abonnés" :</strong> Nom exact, sensible à la casse</p>
               <p><strong>✅ Permissions :</strong> Clé API avec accès lecture à la base</p>
               <p><strong>✅ Test :</strong> Utilisez l'API Explorer d'Airtable pour tester</p>

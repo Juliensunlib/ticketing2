@@ -10,6 +10,8 @@ const getAirtableConfig = () => {
   console.log('🔧 === DIAGNOSTIC AIRTABLE ===');
   console.log('🔧 API Key présente:', !!apiKey, apiKey ? `(${apiKey.substring(0, 15)}...)` : '');
   console.log('🔧 Base ID présente:', !!subscribersBaseId, subscribersBaseId || '');
+  console.log('🔧 Base recherchée: "BDD Abonné"');
+  console.log('🔧 Table recherchée: "Abonnés"');
   console.log('🔧 Toutes les variables env:', {
     VITE_AIRTABLE_API_KEY: import.meta.env.VITE_AIRTABLE_API_KEY ? 'SET' : 'MISSING',
     VITE_AIRTABLE_SUBSCRIBERS_BASE_ID: import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_BASE_ID ? 'SET' : 'MISSING',
@@ -19,7 +21,7 @@ const getAirtableConfig = () => {
   console.log('🔧 === FIN DIAGNOSTIC ===');
 
   if (!apiKey || !subscribersBaseId || apiKey === 'votre_clé_api_airtable' || subscribersBaseId === 'id_de_votre_base_abonnés') {
-    console.warn('⚠️ Configuration Airtable incomplète. Variables Vercel non configurées ou invalides.');
+    console.warn('⚠️ Configuration Airtable incomplète. Variables d\'environnement non configurées ou invalides.');
     return null;
   }
 

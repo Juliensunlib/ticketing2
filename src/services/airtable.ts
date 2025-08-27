@@ -109,7 +109,7 @@ class AirtableService {
       console.log('🔧 Tentative de connexion à Airtable...');
       console.log('🔧 Base ID:', this.subscribersBaseId);
       console.log('🔧 API Key:', this.apiKey ? `${this.apiKey.substring(0, 15)}...` : 'MANQUANTE');
-      console.log('🔧 URL de test:', `https://api.airtable.com/v0/${this.subscribersBaseId}/Abonnés`);
+      console.log('🔧 URL de test:', `https://api.airtable.com/v0/${this.subscribersBaseId}/${encodeURIComponent('Abonnés')}`);
       
       // Vérification préliminaire des paramètres
       if (!this.apiKey || !this.subscribersBaseId) {
@@ -135,9 +135,10 @@ class AirtableService {
           console.log(`📄 Récupération page ${pageCount}...`);
         }
         
-        const url = offset ? `Abonnés?offset=${offset}` : 'Abonnés';
+        const tableName = 'Abonnés';
+        const url = offset ? `${encodeURIComponent(tableName)}?offset=${offset}` : encodeURIComponent(tableName);
         console.log('🔗 URL de requête:', url);
-        const response = await this.makeRequest(this.subscribersBaseId, url);
+        const response = await this.makeRequest(this.subscribersBaseId, tableName, 'GET');
         
         if (response.records) {
           allRecords = allRecords.concat(response.records);
