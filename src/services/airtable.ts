@@ -121,8 +121,8 @@ class AirtableService {
       
       // Champs spécifiques à récupérer
       const fieldsToRetrieve = [
-        'Nom', 'Prénom', 'Téléphone', 'Email', 
-        'Installateur', 'Contrat abonné', 'Lien CRM'
+        'Nom', 'Prenom', 'Nom de l\'entreprise', 'Contrat abonné', 
+        'Téléphone', 'Email', 'Lien CRM'
       ];
       
       console.log('🔧 Champs recherchés:', fieldsToRetrieve);
@@ -203,10 +203,10 @@ class AirtableService {
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
         nom: record.fields['Nom'] || '',
-        prenom: record.fields['Prénom'] || '',
+        prenom: record.fields['Prenom'] || '',
         contratAbonne: record.fields['Contrat abonné'] || '',
-        nomEntreprise: '', // Pas demandé dans la liste
-        installateur: record.fields['Installateur'] || '',
+        nomEntreprise: record.fields['Nom de l\'entreprise'] || '',
+        installateur: '', // Pas dans vos champs
         lienCRM: record.fields['Lien CRM'] || '',
         email: record.fields['Email'] || '',
         telephone: record.fields['Téléphone'] || '',
@@ -222,7 +222,7 @@ class AirtableService {
         // Vérifier les valeurs des champs demandés
         fieldsToRetrieve.forEach(field => {
           const value = firstRecord.fields[field];
-          console.log(`🔍 ${field}:`, value || 'VIDE');
+          console.log(`🔍 ${field}:`, value ? `"${value}"` : 'VIDE');
         });
         
         console.log('🔍 === FIN ANALYSE ===');
