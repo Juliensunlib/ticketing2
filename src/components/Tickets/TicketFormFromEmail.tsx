@@ -181,20 +181,23 @@ ${email.body || email.snippet}`;
           ticketData.subscriberId = displayName;
         }
         
-        createTicket(ticketData);
+        console.log('🎫 Création du ticket avec les données:', ticketData);
+        await createTicket(ticketData);
         
-        console.log('✅ Ticket créé depuis email:', ticketData);
+        console.log('✅ Ticket créé depuis email avec succès');
         
         // Marquer l'email comme traité dans le localStorage
         const processedEmails = JSON.parse(localStorage.getItem('processed_emails') || '[]');
         processedEmails.push(email.id);
         localStorage.setItem('processed_emails', JSON.stringify(processedEmails));
         
+        console.log('✅ Email marqué comme traité');
+        
         onSuccess();
         onClose();
       } catch (error) {
         console.error('Erreur lors de la création du ticket:', error);
-        setErrors({ general: 'Erreur lors de la création du ticket' });
+        setErrors({ general: `Erreur lors de la création du ticket: ${error instanceof Error ? error.message : 'Erreur inconnue'}` });
       }
     }
   };

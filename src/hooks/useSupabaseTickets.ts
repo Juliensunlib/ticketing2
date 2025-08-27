@@ -109,6 +109,7 @@ export const useSupabaseTickets = () => {
         throw new Error('Utilisateur non connecté');
       }
 
+      console.log('🔍 useSupabaseTickets.createTicket - Début création');
       console.log('Recherche de l\'utilisateur par email:', user.email);
 
       // Chercher l'utilisateur existant par email
@@ -135,6 +136,7 @@ export const useSupabaseTickets = () => {
         created_by: existingUser.id
       };
 
+      console.log('🔍 Données finales pour insertion:', ticketDataWithCorrectUserId);
       console.log('Création du ticket dans Supabase...');
       
       const { data, error: supabaseError } = await supabase
@@ -151,6 +153,7 @@ export const useSupabaseTickets = () => {
         .single();
 
       if (supabaseError) {
+        console.error('❌ Erreur Supabase lors de l\'insertion:', supabaseError);
         throw supabaseError;
       }
 
@@ -160,7 +163,9 @@ export const useSupabaseTickets = () => {
       // Synchronisation Airtable désactivée temporairement
       console.log('ℹ️ Synchronisation Airtable désactivée pour le moment');
 
+      console.log('🔄 Rechargement de la liste des tickets...');
       await loadTickets(); // Recharger la liste
+      console.log('✅ Liste des tickets rechargée');
       return data;
     } catch (err) {
       console.error('❌ Erreur lors de la création du ticket:', err);

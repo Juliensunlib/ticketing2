@@ -67,6 +67,9 @@ export const useTickets = () => {
       throw new Error('Utilisateur non connecté');
     }
 
+    console.log('🔍 useTickets.createTicket - Données reçues:', ticketData);
+    console.log('🔍 useTickets.createTicket - Utilisateur:', user.email);
+    
     const supabaseTicketData = {
       title: ticketData.title,
       description: ticketData.description,
@@ -82,6 +85,8 @@ export const useTickets = () => {
       installer_id: ticketData.installerId
     };
 
+    console.log('🔍 useTickets.createTicket - Données Supabase:', supabaseTicketData);
+    
     return createSupabaseTicket(supabaseTicketData);
   };
 
