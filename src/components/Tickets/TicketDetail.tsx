@@ -266,8 +266,11 @@ Priorité: ${currentTicket.priority}`;
 
   // Trouver l'abonné correspondant dans Airtable
   const subscriber = subscribers.find(sub => 
-    currentTicket.subscriberId.includes(sub.contratAbonne) || 
-    currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`)
+    currentTicket.subscriberId && (
+      currentTicket.subscriberId.includes(sub.contratAbonne) || 
+      currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`) ||
+      (sub.email && currentTicket.subscriberId.includes(sub.email))
+    )
   );
 
   // Fonction pour détecter si le ticket vient d'un email
@@ -433,7 +436,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Email du client */}
-                  {subscriber?.email && (
+                  {subscriber && subscriber.email && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <AtSign className="w-3 h-3 mr-1" />
@@ -455,7 +458,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Email extrait de la description (pour les tickets créés depuis email) */}
-                  {!subscriber && getEmailFromDescription() && (
+                  {(!subscriber || !subscriber.email) && getEmailFromDescription() && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <AtSign className="w-3 h-3 mr-1" />
@@ -477,7 +480,7 @@ Priorité: ${currentTicket.priority}`;
                   )}
                   
                   {/* Téléphone du client (uniquement si client Airtable) */}
-                  {subscriber?.telephone && (
+                  {subscriber && subscriber.telephone && (
                     <div className="flex items-center justify-between py-2 border-b border-gray-100">
                       <span className="text-sm text-gray-600 flex items-center">
                         <Phone className="w-3 h-3 mr-1" />
