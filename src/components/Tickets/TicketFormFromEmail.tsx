@@ -24,8 +24,7 @@ interface TicketFormFromEmailProps {
 }
 
 const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClose, onSuccess }) => {
-  const { createTicket } = useTickets();
-  const { tickets, addComment } = useTickets();
+  const { createTicket, tickets, addComment } = useTickets();
   const { users: employees } = useSupabaseUsers();
   const { subscribers, loadData } = useAirtable();
   
@@ -299,396 +298,395 @@ ${email.body || email.snippet}`;
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Informations du ticket */}
-            <div className="space-y-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Mode d'assignation</h3>
-                
-                {/* Sélecteur de mode */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => setAssignMode('new')}
-                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        assignMode === 'new'
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                      }`}
-                    >
-                      <Plus className="w-4 h-4 mx-auto mb-1" />
-                      Créer un nouveau ticket
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAssignMode('existing')}
-                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        assignMode === 'existing'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                      }`}
-                    >
-                      <FileText className="w-4 h-4 mx-auto mb-1" />
-                      Ajouter à un ticket existant
-                    </button>
-                  </div>
-                </div>
+          {/* Sélecteur de mode */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Mode d'assignation</h3>
+            
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setAssignMode('new')}
+                  className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    assignMode === 'new'
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <Plus className="w-4 h-4 mx-auto mb-1" />
+                  Créer un nouveau ticket
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssignMode('existing')}
+                  className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    assignMode === 'existing'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <FileText className="w-4 h-4 mx-auto mb-1" />
+                  Ajouter à un ticket existant
+                </button>
               </div>
+            </div>
+          </div>
 
-              {assignMode === 'existing' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Rechercher un ticket existant</h3>
-                  
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Mode ticket existant */}
+            {assignMode === 'existing' && (
+              <div className="lg:col-span-2 space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Rechercher un ticket existant</h3>
+                
+                <div className="relative">
                   <div className="relative">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        value={existingTicketSearch}
-                        onChange={(e) => {
-                          setExistingTicketSearch(e.target.value);
-                          setShowExistingTicketDropdown(true);
-                        }}
-                        onFocus={() => setShowExistingTicketDropdown(true)}
-                        placeholder="Rechercher par nom, prénom, contrat ou titre..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    
-                    {/* Dropdown des tickets existants */}
-                    {showExistingTicketDropdown && filteredExistingTickets.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {filteredExistingTickets.map((ticket) => (
-                          <button
-                            key={ticket.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedExistingTicket(ticket);
-                              setExistingTicketSearch(`#${ticket.id} - ${ticket.title}`);
-                              setShowExistingTicketDropdown(false);
-                            }}
-                            className="w-full text-left px-4 py-3 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium text-gray-900">
-                              #{ticket.id} - {ticket.title}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {ticket.subscriberId} - {ticket.status}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      value={existingTicketSearch}
+                      onChange={(e) => {
+                        setExistingTicketSearch(e.target.value);
+                        setShowExistingTicketDropdown(true);
+                      }}
+                      onFocus={() => setShowExistingTicketDropdown(true)}
+                      placeholder="Rechercher par nom, prénom, contrat ou titre..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                   </div>
                   
-                  {selectedExistingTicket && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-blue-900 mb-2">Ticket sélectionné :</h4>
-                      <div className="text-sm text-blue-800">
-                        <p><strong>#{selectedExistingTicket.id}</strong> - {selectedExistingTicket.title}</p>
-                        <p>Client : {selectedExistingTicket.subscriberId}</p>
-                        <p>Statut : {selectedExistingTicket.status}</p>
-                      </div>
+                  {/* Dropdown des tickets existants */}
+                  {showExistingTicketDropdown && filteredExistingTickets.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredExistingTickets.map((ticket) => (
+                        <button
+                          key={ticket.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedExistingTicket(ticket);
+                            setExistingTicketSearch(`#${ticket.id} - ${ticket.title}`);
+                            setShowExistingTicketDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">
+                            #{ticket.id} - {ticket.title}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {ticket.subscriberId} - {ticket.status}
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
-
-              {assignMode === 'new' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Informations du nouveau ticket</h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Titre du ticket *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => handleChange('title', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                    errors.title ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  rows={6}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                    errors.description ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priorité
-                  </label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => handleChange('priority', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="Basse">Basse</option>
-                    <option value="Moyenne">Moyenne</option>
-                    <option value="Haute">Haute</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Statut
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => handleChange('status', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="Nouveau">Nouveau</option>
-                    <option value="En attente du client">En attente du client</option>
-                    <option value="En attente de l'installateur">En attente de l'installateur</option>
-                    <option value="En attente retour service technique">En attente retour service technique</option>
-                    <option value="Fermé">Fermé</option>
-                    <option value="Ouvert">Ouvert</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type de problème
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleChange('type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                >
-                  <option value="SAV / question technique">SAV / question technique</option>
-                  <option value="Recouvrement">Recouvrement</option>
-                  <option value="Plainte Installateur">Plainte Installateur</option>
-                  <option value="changement date prélèvement/RIB">changement date prélèvement/RIB</option>
-                  <option value="Résiliation anticipée / cession de contrat">Résiliation anticipée / cession de contrat</option>
-                  <option value="Ajout contrat / Flexibilité">Ajout contrat / Flexibilité</option>
-                </select>
-              </div>
-            </div>
+                
+                {selectedExistingTicket && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">Ticket sélectionné :</h4>
+                    <div className="text-sm text-blue-800">
+                      <p><strong>#{selectedExistingTicket.id}</strong> - {selectedExistingTicket.title}</p>
+                      <p>Client : {selectedExistingTicket.subscriberId}</p>
+                      <p>Statut : {selectedExistingTicket.status}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-            {/* Assignation */}
-          {assignMode === 'new' && (
-            <div className="space-y-4">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Assignation</h3>
+            {/* Mode nouveau ticket */}
+            {assignMode === 'new' && (
+              <>
+                {/* Informations du ticket */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Informations du nouveau ticket</h3>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Titre du ticket *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => handleChange('title', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.title ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Abonné concerné *
-                </label>
-                
-                {/* Sélecteur de type d'abonné */}
-                <div className="mb-4">
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => handleSubscriberTypeChange('airtable')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        subscriberType === 'airtable'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description *
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleChange('description', e.target.value)}
+                      rows={6}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.description ? 'border-red-500' : 'border-gray-300'
                       }`}
+                    />
+                    {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Priorité
+                      </label>
+                      <select
+                        value={formData.priority}
+                        onChange={(e) => handleChange('priority', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="Basse">Basse</option>
+                        <option value="Moyenne">Moyenne</option>
+                        <option value="Haute">Haute</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Statut
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => handleChange('status', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      >
+                        <option value="Nouveau">Nouveau</option>
+                        <option value="En attente du client">En attente du client</option>
+                        <option value="En attente de l'installateur">En attente de l'installateur</option>
+                        <option value="En attente retour service technique">En attente retour service technique</option>
+                        <option value="Fermé">Fermé</option>
+                        <option value="Ouvert">Ouvert</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Type de problème
+                    </label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) => handleChange('type', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     >
-                      📋 Client Airtable
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSubscriberTypeChange('email')}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        subscriberType === 'email'
-                          ? 'bg-orange-100 text-orange-800 border border-orange-300'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      📧 Adresse Email
-                    </button>
+                      <option value="SAV / question technique">SAV / question technique</option>
+                      <option value="Recouvrement">Recouvrement</option>
+                      <option value="Plainte Installateur">Plainte Installateur</option>
+                      <option value="changement date prélèvement/RIB">changement date prélèvement/RIB</option>
+                      <option value="Résiliation anticipée / cession de contrat">Résiliation anticipée / cession de contrat</option>
+                      <option value="Ajout contrat / Flexibilité">Ajout contrat / Flexibilité</option>
+                    </select>
                   </div>
                 </div>
-                
-                {subscriberType === 'airtable' && (
-                  <div className="space-y-3">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-800">
-                        📋 <strong>Client Airtable</strong> - Sélectionnez un abonné existant dans votre base de données
-                      </p>
-                    </div>
-                    <div className="relative">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="text"
-                          value={subscriberSearch}
-                          onChange={(e) => handleSubscriberSearchChange(e.target.value)}
-                          onFocus={() => setShowSubscriberDropdown(true)}
-                          placeholder={subscribers.length === 0 ? 'Chargement des clients...' : 'Rechercher par nom, prénom ou contrat...'}
-                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                            errors.subscriberId ? 'border-red-500' : 'border-gray-300'
+
+                {/* Assignation */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Assignation</h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Abonné concerné *
+                    </label>
+                    
+                    {/* Sélecteur de type d'abonné */}
+                    <div className="mb-4">
+                      <div className="flex space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSubscriberTypeChange('airtable')}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            subscriberType === 'airtable'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
-                        />
+                        >
+                          📋 Client Airtable
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSubscriberTypeChange('email')}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            subscriberType === 'email'
+                              ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          📧 Adresse Email
+                        </button>
                       </div>
-                      
-                      {/* Dropdown des résultats */}
-                      {showSubscriberDropdown && subscribers.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                          {filteredSubscribers.length > 0 ? (
-                            filteredSubscribers.map((subscriber) => (
-                              <button
-                                key={subscriber.id}
-                                type="button"
-                                onClick={() => handleSubscriberSelect(subscriber)}
-                                className="w-full text-left px-4 py-3 hover:bg-orange-50 focus:bg-orange-50 focus:outline-none border-b border-gray-100 last:border-b-0"
-                              >
-                                <div className="font-medium text-gray-900">
-                                  {subscriber.prenom} {subscriber.nom}
+                    </div>
+                    
+                    {subscriberType === 'airtable' && (
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-sm text-blue-800">
+                            📋 <strong>Client Airtable</strong> - Sélectionnez un abonné existant dans votre base de données
+                          </p>
+                        </div>
+                        <div className="relative">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={subscriberSearch}
+                              onChange={(e) => handleSubscriberSearchChange(e.target.value)}
+                              onFocus={() => setShowSubscriberDropdown(true)}
+                              placeholder={subscribers.length === 0 ? 'Chargement des clients...' : 'Rechercher par nom, prénom ou contrat...'}
+                              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                                errors.subscriberId ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                            />
+                          </div>
+                          
+                          {/* Dropdown des résultats */}
+                          {showSubscriberDropdown && subscribers.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {filteredSubscribers.length > 0 ? (
+                                filteredSubscribers.map((subscriber) => (
+                                  <button
+                                    key={subscriber.id}
+                                    type="button"
+                                    onClick={() => handleSubscriberSelect(subscriber)}
+                                    className="w-full text-left px-4 py-3 hover:bg-orange-50 focus:bg-orange-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                                  >
+                                    <div className="font-medium text-gray-900">
+                                      {subscriber.prenom} {subscriber.nom}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      {subscriber.contratAbonne}
+                                      {subscriber.nomEntreprise && (
+                                        <span className="ml-2 text-orange-600">({subscriber.nomEntreprise})</span>
+                                      )}
+                                      {subscriber.installateur && (
+                                        <span className="ml-2 text-blue-600">- {subscriber.installateur}</span>
+                                      )}
+                                      {subscriber.email && (
+                                        <span className="ml-2 text-green-600">📧 {subscriber.email}</span>
+                                      )}
+                                    </div>
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-3 text-gray-500 text-center">
+                                  <div>Aucun client trouvé pour "{subscriberSearch}"</div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSubscriberTypeChange('email')}
+                                    className="mt-2 text-sm text-orange-600 hover:text-orange-700 underline"
+                                  >
+                                    Utiliser l'adresse email à la place
+                                  </button>
                                 </div>
-                                <div className="text-sm text-gray-600">
-                                  {subscriber.contratAbonne}
-                                  {subscriber.nomEntreprise && (
-                                    <span className="ml-2 text-orange-600">({subscriber.nomEntreprise})</span>
-                                  )}
-                                  {subscriber.installateur && (
-                                    <span className="ml-2 text-blue-600">- {subscriber.installateur}</span>
-                                  )}
-                                  {subscriber.email && (
-                                    <span className="ml-2 text-green-600">📧 {subscriber.email}</span>
-                                  )}
-                                </div>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-4 py-3 text-gray-500 text-center">
-                              <div>Aucun client trouvé pour "{subscriberSearch}"</div>
-                              <button
-                                type="button"
-                                onClick={() => handleSubscriberTypeChange('email')}
-                                className="mt-2 text-sm text-orange-600 hover:text-orange-700 underline"
-                              >
-                                Utiliser l'adresse email à la place
-                              </button>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {subscriberType === 'email' && (
-                  <div className="space-y-3">
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <p className="text-sm text-orange-800">
-                        📧 <strong>Adresse Email</strong> - Pour un client non répertorié dans Airtable
+                      </div>
+                    )}
+                    
+                    {subscriberType === 'email' && (
+                      <div className="space-y-3">
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                          <p className="text-sm text-orange-800">
+                            📧 <strong>Adresse Email</strong> - Pour un client non répertorié dans Airtable
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Nom du client (optionnel)
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={manualSubscriberName}
+                              onChange={(e) => setManualSubscriberName(e.target.value)}
+                              placeholder="Nom et prénom du client"
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Adresse email *
+                          </label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="email"
+                              value={manualEmail}
+                              onChange={(e) => setManualEmail(e.target.value)}
+                              placeholder="adresse@email.com"
+                              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                                errors.subscriberId ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                            />
+                          </div>
+                        </div>
+                        
+                        {subscribers.length > 0 && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-sm text-blue-800 mb-2">
+                              💡 <strong>Suggestion :</strong> Vérifiez si ce client existe dans Airtable
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSubscriberTypeChange('airtable');
+                                setSubscriberSearch(manualEmail);
+                                setShowSubscriberDropdown(true);
+                              }}
+                              className="text-sm text-blue-600 hover:text-blue-700 underline"
+                            >
+                              Rechercher "{manualEmail}" dans la base Airtable
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-800">
+                        💡 <strong>Email source :</strong> {email.from}
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        {subscriberType === 'airtable' ? 
+                          'Les réponses seront envoyées à l\'email du client Airtable' :
+                          'Les réponses seront envoyées à cette adresse email'
+                        }
                       </p>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nom du client (optionnel)
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="text"
-                          value={manualSubscriberName}
-                          onChange={(e) => setManualSubscriberName(e.target.value)}
-                          placeholder="Nom et prénom du client"
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Adresse email *
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="email"
-                          value={manualEmail}
-                          onChange={(e) => setManualEmail(e.target.value)}
-                          placeholder="adresse@email.com"
-                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                            errors.subscriberId ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                    
-                    {subscribers.length > 0 && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-800 mb-2">
-                          💡 <strong>Suggestion :</strong> Vérifiez si ce client existe dans Airtable
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleSubscriberTypeChange('airtable');
-                            setSubscriberSearch(manualEmail);
-                            setShowSubscriberDropdown(true);
-                          }}
-                          className="text-sm text-blue-600 hover:text-blue-700 underline"
-                        >
-                          Rechercher "{manualEmail}" dans la base Airtable
-                        </button>
-                      </div>
-                    )}
+                    {errors.subscriberId && <p className="text-red-500 text-sm mt-1">{errors.subscriberId}</p>}
                   </div>
-                )}
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">
-                    💡 <strong>Email source :</strong> {email.from}
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    {subscriberType === 'airtable' ? 
-                      'Les réponses seront envoyées à l\'email du client Airtable' :
-                      'Les réponses seront envoyées à cette adresse email'
-                    }
-                  </p>
-                </div>
-                
-                {errors.subscriberId && <p className="text-red-500 text-sm mt-1">{errors.subscriberId}</p>}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assigné à
-                </label>
-                <select
-                  value={formData.assignedTo}
-                  onChange={(e) => handleChange('assignedTo', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                >
-                  <option value="">Non assigné</option>
-                  {employees.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
-                      {employee.name} - {employee.user_group}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assigné à
+                    </label>
+                    <select
+                      value={formData.assignedTo}
+                      onChange={(e) => handleChange('assignedTo', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    >
+                      <option value="">Non assigné</option>
+                      {employees.map((employee) => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.name} - {employee.user_group}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Actions */}
@@ -702,10 +700,14 @@ ${email.body || email.snippet}`;
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center"
+              className={`px-6 py-2 text-white rounded-lg transition-colors flex items-center ${
+                assignMode === 'existing' 
+                  ? 'bg-blue-600 hover:bg-blue-700' 
+                  : 'bg-orange-600 hover:bg-orange-700'
+              }`}
             >
               <Save className="w-4 h-4 mr-2" />
-              Créer le Ticket
+              {assignMode === 'existing' ? 'Ajouter à ce ticket' : 'Créer le Ticket'}
             </button>
           </div>
         </form>
