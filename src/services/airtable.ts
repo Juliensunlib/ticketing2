@@ -60,7 +60,15 @@ class AirtableService {
           // Erreur 422 souvent liée aux permissions ou modèle introuvable
           const errorData = JSON.parse(errorText);
           if (errorData.error?.type === 'INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND') {
-            throw new Error(`Permissions insuffisantes ou modèle introuvable. Vérifiez que votre clé API a accès à la base ${baseId} et que la table "Abonnés" existe avec les bonnes permissions`);
+            throw new Error(`ERREUR PERMISSIONS AIRTABLE:\n\n` +
+              `🔑 Clé API: ${this.apiKey.substring(0, 15)}...\n` +
+              `📊 Base ID: ${baseId}\n` +
+              `📋 Table: "${tableName}"\n\n` +
+              `SOLUTIONS:\n` +
+              `1. Vérifiez que votre clé API a accès à cette base spécifique\n` +
+              `2. Confirmez que la table "Abonnés" existe dans la base\n` +
+              `3. Allez dans Airtable → Account → API → Vérifiez les permissions\n` +
+              `4. Testez dans l'API Explorer: https://airtable.com/api`);
           }
           throw new Error(`Erreur de validation Airtable (422). Détails: ${errorText}`);
         } else {
