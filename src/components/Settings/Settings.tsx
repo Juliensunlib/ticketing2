@@ -4,7 +4,6 @@ import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 
 const Settings: React.FC = () => {
   const { users, loading: usersLoading, createUser } = useSupabaseUsers();
-  const { subscribers, loading: airtableLoading, error: airtableError, loadData } = useAirtable();
   
   // Vérifier la configuration Airtable depuis les variables d'environnement
   const airtableConfig = {
@@ -141,7 +140,7 @@ const Settings: React.FC = () => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-green-900 mb-2 flex items-center">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Configuration active
+                Configuration active - {subscribers.length} abonné{subscribers.length !== 1 ? 's' : ''} chargé{subscribers.length !== 1 ? 's' : ''}
               </h4>
               <div className="text-sm text-green-800 space-y-2">
                 <div className="flex items-center justify-between">
@@ -154,6 +153,11 @@ const Settings: React.FC = () => {
                   <span>Base Abonnés :</span>
                   <span className="font-mono text-xs">{airtableConfig.subscribersBaseId}</span>
                 </div>
+                {airtableError && (
+                  <div className="text-red-800 text-xs mt-2">
+                    ⚠️ Erreur: {airtableError}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
