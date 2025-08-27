@@ -10,13 +10,22 @@ class AirtableService {
   }
 
   private async makeRequest(baseId: string, tableName: string, method: 'GET' | 'POST' | 'PATCH' = 'GET', data?: any) {
-    const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
+    // Séparer le nom de table des paramètres de requête
+    const [actualTableName, queryString] = tableName.includes('?') 
+      ? tableName.split('?', 2) 
+      : [tableName, ''];
+    
+    let url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(actualTableName)}`;
+    if (queryString) {
+      url += `?${queryString}`;
+    }
     
     console.log('🌐 Tentative de requête Airtable:', {
       url,
       method,
       baseId,
-      tableName,
+      tableName: actualTableName,
+      queryParams: queryString || 'aucun',
       hasApiKey: !!this.apiKey,
       apiKeyLength: this.apiKey?.length
     });
@@ -158,7 +167,7 @@ class AirtableService {
         }
         
         const fullUrl = `${url}?${params.toString()}`;
-        console.log('🔗 URL de requête:', fullUrl);
+        console.log('🔗 URL de requête complète:', fullUrl);
         
         const response = await this.makeRequest(this.subscribersBaseId, `${tableName}?${params.toString()}`, 'GET');
         
