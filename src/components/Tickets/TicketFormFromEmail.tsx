@@ -300,7 +300,102 @@ ${email.body || email.snippet}`;
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Informations du ticket */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Informations du Ticket</h3>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Mode d'assignation</h3>
+                
+                {/* Sélecteur de mode */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setAssignMode('new')}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        assignMode === 'new'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <Plus className="w-4 h-4 mx-auto mb-1" />
+                      Créer un nouveau ticket
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAssignMode('existing')}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        assignMode === 'existing'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4 mx-auto mb-1" />
+                      Ajouter à un ticket existant
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {assignMode === 'existing' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Rechercher un ticket existant</h3>
+                  
+                  <div className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        value={existingTicketSearch}
+                        onChange={(e) => {
+                          setExistingTicketSearch(e.target.value);
+                          setShowExistingTicketDropdown(true);
+                        }}
+                        onFocus={() => setShowExistingTicketDropdown(true)}
+                        placeholder="Rechercher par nom, prénom, contrat ou titre..."
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    {/* Dropdown des tickets existants */}
+                    {showExistingTicketDropdown && filteredExistingTickets.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredExistingTickets.map((ticket) => (
+                          <button
+                            key={ticket.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedExistingTicket(ticket);
+                              setExistingTicketSearch(`#${ticket.id} - ${ticket.title}`);
+                              setShowExistingTicketDropdown(false);
+                            }}
+                            className="w-full text-left px-4 py-3 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                          >
+                            <div className="font-medium text-gray-900">
+                              #{ticket.id} - {ticket.title}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {ticket.subscriberId} - {ticket.status}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {selectedExistingTicket && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-blue-900 mb-2">Ticket sélectionné :</h4>
+                      <div className="text-sm text-blue-800">
+                        <p><strong>#{selectedExistingTicket.id}</strong> - {selectedExistingTicket.title}</p>
+                        <p>Client : {selectedExistingTicket.subscriberId}</p>
+                        <p>Statut : {selectedExistingTicket.status}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {assignMode === 'new' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900">Informations du nouveau ticket</h3>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
