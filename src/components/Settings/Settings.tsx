@@ -230,11 +230,7 @@ const Settings: React.FC = () => {
             <button
               onClick={() => {
                 console.log('🔄 Test de connexion Airtable demandé');
-                if (forceReload) {
-                  forceReload();
-                } else {
-                  console.error('❌ Fonction forceReload non disponible');
-                }
+                forceReload();
               }}
               className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center"
               disabled={airtableLoading}
@@ -254,6 +250,18 @@ const Settings: React.FC = () => {
             <p className="text-xs text-gray-500 mt-2">
               Force le rechargement des données depuis Airtable. Vérifiez la console (F12) pour les détails.
             </p>
+            
+            {/* Informations de debug */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <h5 className="text-sm font-medium text-gray-900 mb-2">Debug :</h5>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>• Abonnés chargés : {subscribers.length}</p>
+                <p>• Utilisateurs chargés : {users.length}</p>
+                <p>• État de chargement Airtable : {airtableLoading ? 'En cours...' : 'Terminé'}</p>
+                <p>• État de chargement Users : {usersLoading ? 'En cours...' : 'Terminé'}</p>
+                {airtableError && <p className="text-red-600">• Erreur Airtable : {airtableError}</p>}
+              </div>
+            </div>
           </div>
         </div>
       )}

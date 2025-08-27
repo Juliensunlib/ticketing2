@@ -39,9 +39,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
 
   useEffect(() => {
     console.log('TicketForm: Chargement des abonnés...');
-    if (loadData) {
-      loadData();
-    }
+    // Forcer le rechargement des données au montage du composant
+    loadData();
   }, [loadData]);
 
   useEffect(() => {
@@ -53,6 +52,19 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
       console.log('✅ Premiers abonnés:', subscribers.slice(0, 3).map(s => `${s.prenom} ${s.nom} - ${s.contratAbonne}`));
     } else {
       console.log('⚠️ Aucun abonné chargé depuis Airtable');
+      console.log('⚠️ Tentative de rechargement...');
+      // Essayer de recharger si pas de données
+      setTimeout(() => {
+        if (subscribers.length === 0) {
+          loadData();
+        }
+      }, 1000);
+    }
+    
+    if (employees.length > 0) {
+      console.log('✅ Premiers employés:', employees.slice(0, 3).map(e => `${e.name} - ${e.user_group}`));
+    } else {
+      console.log('⚠️ Aucun employé chargé depuis Supabase');
     }
   }, [subscribers, employees]);
 
@@ -314,7 +326,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                       value={subscriberSearch}
                       onChange={(e) => handleSubscriberSearchChange(e.target.value)}
                       onFocus={() => setShowSubscriberDropdown(true)}
-                      placeholder={subscribers.length === 0 ? 'Saisir manuellement le nom de l\'abonné (ex: Jean Dupont - SL-000123)' : 'Rechercher un abonné...'}
+                      placeholder={subscribers.length === 0 ? 'Chargement des abonnés... ou saisir manuellement' : `Rechercher parmi ${subscribers.length} abonnés...`}
                       className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
                         errors.subscriberId ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -353,6 +365,26 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                       )}
                     </div>
                   )}
+                  
+                  {/* Message de debug si pas de données */}
+                  {showSubscriberDropdown && subscribers.length === 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
+                      <div className="text-center text-gray-500">
+                        <p className="text-sm">Aucun abonné chargé depuis Airtable</p>
+                        <p className="text-xs mt-1">Vérifiez la configuration dans Paramètres</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            console.log('🔄 Rechargement manuel des abonnés');
+                            loadData();
+                          }}
+                          className="mt-2 text-xs text-orange-600 hover:text-orange-700 underline"
+                        >
+                          Recharger les données
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {errors.subscriberId && <p className="text-red-500 text-sm mt-1">{errors.subscriberId}</p>}
               </div>
@@ -373,6 +405,11 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                     </option>
                   ))}
                 </select>
+                {employees.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Aucun collaborateur trouvé. Vérifiez la configuration Supabase dans Paramètres.
+                  </p>
+                )}
               </div>
 
 

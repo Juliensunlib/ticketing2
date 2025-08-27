@@ -28,10 +28,14 @@ export const useSupabaseUsers = () => {
         .order('name');
 
       if (supabaseError) {
+        console.error('❌ Erreur Supabase lors du chargement des utilisateurs:', supabaseError);
         throw supabaseError;
       }
 
       console.log('✅ Utilisateurs récupérés avec succès:', data?.length || 0);
+      if (data && data.length > 0) {
+        console.log('✅ Utilisateurs:', data.map(u => `${u.name} (${u.email}) - ${u.user_group}`));
+      }
       setUsers(data || []);
     } catch (err) {
       console.error('❌ Erreur lors de la récupération des utilisateurs:', err);

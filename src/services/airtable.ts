@@ -92,6 +92,8 @@ class AirtableService {
   async getSubscribers(): Promise<Subscriber[]> {
     try {
       console.log('📡 Connexion à Airtable...');
+      console.log('🔧 Base ID utilisée:', this.subscribersBaseId);
+      console.log('🔧 API Key présente:', !!this.apiKey);
       
       // Récupérer tous les enregistrements avec pagination
       let allRecords: any[] = [];
@@ -105,12 +107,21 @@ class AirtableService {
         }
         
         const url = offset ? `Abonnés?offset=${offset}` : 'Abonnés';
+        console.log('🔗 URL de requête:', url);
         const response = await this.makeRequest(this.subscribersBaseId, url);
         
         if (response.records) {
           allRecords = allRecords.concat(response.records);
           if (pageCount === 1) {
             console.log(`📊 ${response.records.length} enregistrements trouvés`);
+            // Afficher un exemple d'enregistrement pour debug
+            if (response.records.length > 0) {
+              console.log('📋 Exemple d\'enregistrement:', {
+                id: response.records[0].id,
+                fields: Object.keys(response.records[0].fields || {}),
+                sampleData: response.records[0].fields
+              });
+            }
           }
         }
         
@@ -119,6 +130,7 @@ class AirtableService {
       
       if (allRecords.length === 0) {
         console.warn('⚠️ Aucun abonné trouvé dans Airtable');
+        console.warn('⚠️ Vérifiez que la table "Abonnés" existe et contient des données');
         return [];
       }
       
@@ -136,6 +148,7 @@ class AirtableService {
         telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
       }));
       
+      console.log('✅ Abonnés traités:', subscribers.slice(0, 3));
       return subscribers;
     } catch (error) {
       console.error('❌ Erreur détaillée Airtable:', error);

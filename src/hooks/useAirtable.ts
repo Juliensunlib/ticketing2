@@ -39,11 +39,15 @@ export const useAirtable = () => {
       const config = getAirtableConfig();
       if (config) {
         console.log('🔧 Configuration Airtable détectée');
+        console.log('🔧 API Key (début):', config.apiKey.substring(0, 10) + '...');
+        console.log('🔧 Base ID:', config.subscribersBaseId);
         airtableServiceRef.current = new AirtableService(config.apiKey, config.subscribersBaseId);
         isInitializedRef.current = true;
         
         // Charger les données automatiquement après initialisation
-        loadDataInternal();
+        setTimeout(() => {
+          loadDataInternal();
+        }, 100);
       } else {
         console.warn('⚠️ Configuration Airtable manquante');
         setError('Configuration Airtable manquante. Vérifiez les variables d\'environnement Vercel.');
