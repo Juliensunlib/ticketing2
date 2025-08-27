@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import AirtableService from '../services/airtable';
 import { Subscriber } from '../types';
-import { useAuth } from '../contexts/AuthContext';
 
 // Configuration depuis les variables d'environnement
 const getAirtableConfig = () => {
@@ -23,52 +22,50 @@ const getAirtableConfig = () => {
 };
 
 export const useAirtable = () => {
-  const { user } = useAuth();
   const [airtableService, setAirtableService] = useState<AirtableService | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
-  
-  // Debug: Afficher l'utilisateur connecté
-  useEffect(() => {
-    if (user) {
-      console.log('👤 Utilisateur connecté pour Airtable:', user.email);
-    }
-  }, [user]);
 
+  // Initialiser le service Airtable une seule fois
   useEffect(() => {
     const config = getAirtableConfig();
     if (config) {
-      console.log('🔧 Configuration Airtable détectée pour:', user?.email || 'utilisateur inconnu');
+      console.log('🔧 Configuration Airtable détectée');
       const service = new AirtableService(config.apiKey, config.subscribersBaseId);
       setAirtableService(service);
-      // Charger les données immédiatement
-      console.log('🔄 Chargement automatique des abonnés Airtable pour:', user?.email || 'utilisateur inconnu');
-      loadDataWithService(service);
     } else {
-      console.warn('⚠️ Configuration Airtable manquante pour:', user?.email || 'utilisateur inconnu');
+      console.warn('⚠️ Configuration Airtable manquante');
       setError('Configuration Airtable manquante. Vérifiez les variables d\'environnement Vercel.');
     }
-  }, [user]);
+  }, []);
+
+  // Charger les données quand le service est initialisé
+  useEffect(() => {
+    if (airtableService && subscribers.length === 0 && !loading && !error) {
+      console.log('🔄 Chargement automatique des abonnés Airtable');
+      loadDataWithService(airtableService);
+    }
+  }, [airtableService]);
 
   const loadDataWithService = async (service: AirtableService, isRetry = false) => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`📋 ${isRetry ? 'Nouvelle tentative' : 'Récupération'} des abonnés depuis Airtable pour:`, user?.email || 'utilisateur inconnu');
+      console.log(`📋 ${isRetry ? 'Nouvelle tentative' : 'Récupération'} des abonnés depuis Airtable`);
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
       const subscribersData = await service.getSubscribers();
-      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable pour:`, user?.email || 'utilisateur inconnu');
+      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable`);
 
       setSubscribers(subscribersData);
       setRetryCount(0); // Reset retry count on success
       
     } catch (err) {
-      console.error('❌ Erreur lors du chargement des abonnés pour:', user?.email || 'utilisateur inconnu', err);
+      console.error('❌ Erreur lors du chargement des abonnés:', err);
       
       const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
       
@@ -82,7 +79,7 @@ export const useAirtable = () => {
         return;
       }
       
-      setError(`Erreur Airtable pour ${user?.email}: ${errorMessage}`);
+      setError(`Erreur Airtable: ${errorMessage}`);
       setSubscribers([]);
       setRetryCount(0);
     } finally {
@@ -92,7 +89,7 @@ export const useAirtable = () => {
 
   const loadData = async () => {
     if (!airtableService) {
-      console.warn('⚠️ Service Airtable non initialisé pour:', user?.email || 'utilisateur inconnu');
+      console.warn('⚠️ Service Airtable non initialisé');
       setError('Service Airtable non configuré. Vérifiez les variables d\'environnement Vercel.');
       return;
     }
@@ -102,7 +99,7 @@ export const useAirtable = () => {
   };
 
   const forceReload = async () => {
-    console.log('🔄 Rechargement forcé des données Airtable pour:', user?.email || 'utilisateur inconnu');
+    console.log('🔄 Rechargement forcé des données Airtable');
     setLoading(true);
     setError(null);
     setRetryCount(0);
