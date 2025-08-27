@@ -403,9 +403,28 @@ const Settings: React.FC = () => {
                 {usersLoading ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
-                        <div className="mt-2 p-3 bg-red-100 rounded text-xs">
+                    <p className="text-sm text-gray-600 mt-2">Chargement des utilisateurs...</p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
+                    {users.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-gray-900">{user.name}</p>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          user.user_group === 'admin' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {user.user_group}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
                             <li><strong>Clé API:</strong> Vérifiez qu'elle a accès à la base {airtableConfig.subscribersBaseId}</li>
                             <li><strong>Table:</strong> Confirmez qu'une table "Abonnés" existe dans votre base</li>
                             <li><strong>Permissions:</strong> Votre clé API doit avoir les droits de lecture</li>
