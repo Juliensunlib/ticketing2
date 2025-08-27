@@ -143,7 +143,7 @@ ${email.body || email.snippet}`;
         processedEmails.push(email.id);
         localStorage.setItem('processed_emails', JSON.stringify(processedEmails));
         
-        alert(`Email ajouté au ticket #${selectedExistingTicket.id} avec succès !`);
+        console.log(`✅ Email ajouté au ticket #${selectedExistingTicket.id} avec succès !`);
         onSuccess();
         onClose();
         return;
@@ -183,6 +183,8 @@ ${email.body || email.snippet}`;
         }
         
         createTicket(ticketData);
+        
+        console.log('✅ Ticket créé depuis email:', ticketData);
         
         // Marquer l'email comme traité dans le localStorage
         const processedEmails = JSON.parse(localStorage.getItem('processed_emails') || '[]');
