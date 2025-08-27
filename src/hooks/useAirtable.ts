@@ -69,8 +69,6 @@ export const useAirtable = () => {
     setError(null);
     
     try {
-      }
-      
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
       const subscribersData = await airtableServiceRef.current.getSubscribers();
