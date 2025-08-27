@@ -37,23 +37,22 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
 
   useEffect(() => {
     console.log('TicketForm: Chargement des abonnés...');
-    console.log('👤 Utilisateur dans TicketForm:', user?.email);
+    console.log('👤 Utilisateur dans TicketForm:', user?.email || 'non connecté');
     if (loadData) {
       loadData();
     }
-  }, [user]);
+  }, [user, loadData]);
 
   useEffect(() => {
-    console.log('TicketForm: Données mises à jour pour:', user?.email);
-    console.log('📊 Nombre d\'abonnés Airtable pour', user?.email, ':', subscribers.length);
+    console.log('TicketForm: Données mises à jour pour:', user?.email || 'utilisateur inconnu');
+    console.log('📊 Nombre d\'abonnés Airtable pour', user?.email || 'utilisateur inconnu', ':', subscribers.length);
     console.log('👥 Nombre d\'employés Supabase:', employees.length);
     
     if (subscribers.length > 0) {
-      console.log('✅ Premiers abonnés pour', user?.email, ':', subscribers.slice(0, 3).map(s => `${s.prenom} ${s.nom} - ${s.contratAbonne}`));
+      console.log('✅ Premiers abonnés pour', user?.email || 'utilisateur inconnu', ':', subscribers.slice(0, 3).map(s => `${s.prenom} ${s.nom} - ${s.contratAbonne}`));
     } else {
-      console.log('⚠️ Aucun abonné chargé depuis Airtable pour:', user?.email);
+      console.log('⚠️ Aucun abonné chargé depuis Airtable pour:', user?.email || 'utilisateur inconnu');
     }
-  }, [subscribers, employees, user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -8,8 +8,14 @@ const getAirtableConfig = () => {
   const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
   const subscribersBaseId = import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_BASE_ID;
 
+  console.log('🔧 Variables d\'environnement Airtable:');
+  console.log('🔧 API Key présente:', !!apiKey);
+  console.log('🔧 Base ID présente:', !!subscribersBaseId);
+  console.log('🔧 API Key (début):', apiKey ? apiKey.substring(0, 10) + '...' : 'MANQUANTE');
+  console.log('🔧 Base ID:', subscribersBaseId || 'MANQUANTE');
+
   if (!apiKey || !subscribersBaseId || apiKey === 'votre_clé_api_airtable' || subscribersBaseId === 'id_de_votre_base_abonnés') {
-    console.warn('Configuration Airtable incomplète. Vérifiez votre fichier .env');
+    console.warn('⚠️ Configuration Airtable incomplète. Variables Vercel non configurées ou invalides.');
     return null;
   }
 
@@ -22,6 +28,8 @@ export const useAirtable = () => {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
   
   // Debug: Afficher l'utilisateur connecté
   useEffect(() => {
@@ -41,25 +49,42 @@ export const useAirtable = () => {
       loadDataWithService(service);
     } else {
       console.warn('⚠️ Configuration Airtable manquante pour:', user?.email || 'utilisateur inconnu');
-      setError('Configuration Airtable manquante. Vérifiez le fichier .env');
+      setError('Configuration Airtable manquante. Vérifiez les variables d\'environnement Vercel.');
     }
   }, [user]);
 
-  const loadDataWithService = async (service: AirtableService) => {
+  const loadDataWithService = async (service: AirtableService, isRetry = false) => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('📋 Récupération des abonnés depuis Airtable pour:', user?.email || 'utilisateur inconnu');
+      console.log(`📋 ${isRetry ? 'Nouvelle tentative' : 'Récupération'} des abonnés depuis Airtable pour:`, user?.email || 'utilisateur inconnu');
+      console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
+      
       const subscribersData = await service.getSubscribers();
       console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable pour:`, user?.email || 'utilisateur inconnu');
 
       setSubscribers(subscribersData);
+      setRetryCount(0); // Reset retry count on success
       
     } catch (err) {
       console.error('❌ Erreur lors du chargement des abonnés pour:', user?.email || 'utilisateur inconnu', err);
-      setError(`Erreur Airtable pour ${user?.email}: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
-      setSubscribers([]); // S'assurer que la liste est vide en cas d'erreur
+      
+      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+      
+      // Retry logic
+      if (retryCount < maxRetries - 1 && !errorMessage.includes('401') && !errorMessage.includes('403')) {
+        console.log(`🔄 Tentative de retry dans 2 secondes... (${retryCount + 1}/${maxRetries})`);
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => {
+          loadDataWithService(service, true);
+        }, 2000);
+        return;
+      }
+      
+      setError(`Erreur Airtable pour ${user?.email}: ${errorMessage}`);
+      setSubscribers([]);
+      setRetryCount(0);
     } finally {
       setLoading(false);
     }
@@ -68,29 +93,25 @@ export const useAirtable = () => {
   const loadData = async () => {
     if (!airtableService) {
       console.warn('⚠️ Service Airtable non initialisé pour:', user?.email || 'utilisateur inconnu');
-      setError('Service Airtable non configuré. Ajoutez vos clés API dans le fichier .env');
+      setError('Service Airtable non configuré. Vérifiez les variables d\'environnement Vercel.');
       return;
     }
 
+    setRetryCount(0); // Reset retry count for manual reload
+    await loadDataWithService(airtableService);
+  };
+
+  const forceReload = async () => {
+    console.log('🔄 Rechargement forcé des données Airtable pour:', user?.email || 'utilisateur inconnu');
     setLoading(true);
     setError(null);
+    setRetryCount(0);
+    setSubscribers([]); // Clear current data
 
-    try {
-      console.log('🔄 Rechargement des données Airtable pour:', user?.email || 'utilisateur inconnu');
-      
-      const subscribersData = await airtableService.getSubscribers();
-
-      console.log('✅ Abonnés récupérés pour:', user?.email || 'utilisateur inconnu', subscribersData.length);
-
-      setSubscribers(subscribersData);
-    } catch (err) {
-      console.error('❌ Erreur lors du chargement des données Airtable pour:', user?.email || 'utilisateur inconnu', err);
-      if (err instanceof Error && err.message.includes('Failed to fetch')) {
-        setError('Connexion à Airtable impossible. Vérifiez votre connexion internet et vos clés API.');
-      } else {
-        setError(`Erreur lors du rechargement: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
-      }
-    } finally {
+    if (airtableService) {
+      await loadDataWithService(airtableService);
+    } else {
+      setError('Service Airtable non disponible');
       setLoading(false);
     }
   };
@@ -116,7 +137,10 @@ export const useAirtable = () => {
     loading,
     error,
     loadData,
+    forceReload,
     createTicket,
     updateTicket,
+    retryCount,
+    maxRetries,
   };
 };

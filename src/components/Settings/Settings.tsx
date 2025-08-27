@@ -5,7 +5,7 @@ import { useAirtable } from '../../hooks/useAirtable';
 
 const Settings: React.FC = () => {
   const { users, loading: usersLoading, createUser } = useSupabaseUsers();
-  const { subscribers, loading: airtableLoading, error: airtableError, loadData } = useAirtable();
+  const { subscribers, loading: airtableLoading, error: airtableError, loadData, forceReload, retryCount, maxRetries } = useAirtable();
   
   // Vérifier la configuration Airtable depuis les variables d'environnement
   const airtableConfig = {
@@ -142,27 +142,32 @@ const Settings: React.FC = () => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-green-900 mb-2 flex items-center">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Configuration active - {airtableLoading ? 'Chargement...' : `${subscribers.length} abonné${subscribers.length !== 1 ? 's' : ''} chargé${subscribers.length !== 1 ? 's' : ''}`}
+                Configuration Vercel active - {airtableLoading ? `Chargement... ${retryCount > 0 ? `(tentative ${retryCount}/${maxRetries})` : ''}` : `${subscribers.length} abonné${subscribers.length !== 1 ? 's' : ''} chargé${subscribers.length !== 1 ? 's' : ''}`}
               </h4>
               <div className="text-sm text-green-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span>Clé API :</span>
+                  <span>Clé API (Vercel) :</span>
                   <span className="font-mono text-xs">
                     {airtableConfig.apiKey.substring(0, 8)}...{airtableConfig.apiKey.slice(-4)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Base Abonnés :</span>
+                  <span>Base Abonnés (Vercel) :</span>
                   <span className="font-mono text-xs">{airtableConfig.subscribersBaseId}</span>
                 </div>
                 {airtableError && (
                   <div className="text-red-800 text-xs mt-2">
                     ⚠️ Erreur: {airtableError}
+                    {retryCount > 0 && (
+                      <div className="mt-1">
+                        🔄 Tentatives de reconnexion: {retryCount}/{maxRetries}
+                      </div>
+                    )}
                   </div>
                 )}
                 {airtableLoading && (
                   <div className="text-blue-800 text-xs mt-2">
-                    🔄 Chargement des abonnés en cours...
+                    🔄 Chargement des abonnés en cours... {retryCount > 0 ? `(retry ${retryCount}/${maxRetries})` : ''}
                   </div>
                 )}
               </div>
@@ -171,14 +176,15 @@ const Settings: React.FC = () => {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-red-900 mb-2 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                Configuration manquante
+                Variables Vercel manquantes
               </h4>
               <div className="text-sm text-red-800 space-y-2">
-                <p>Pour configurer Airtable, ajoutez ces variables dans votre fichier <code className="bg-red-100 px-1 rounded">.env</code> :</p>
+                <p>Pour configurer Airtable, ajoutez ces variables d'environnement dans Vercel :</p>
                 <div className="bg-red-100 rounded p-3 font-mono text-xs space-y-1">
                   <div>VITE_AIRTABLE_API_KEY=votre_clé_api</div>
                   <div>VITE_AIRTABLE_SUBSCRIBERS_BASE_ID=id_base_abonnés</div>
                 </div>
+                <p className="text-xs">Ces variables sont configurées dans le dashboard Vercel → Settings → Environment Variables</p>
               </div>
             </div>
           )}
@@ -224,10 +230,10 @@ const Settings: React.FC = () => {
             <button
               onClick={() => {
                 console.log('🔄 Test de connexion Airtable demandé');
-                if (loadData) {
-                  loadData();
+                if (forceReload) {
+                  forceReload();
                 } else {
-                  console.error('❌ Fonction loadData non disponible');
+                  console.error('❌ Fonction forceReload non disponible');
                 }
               }}
               className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center"
@@ -236,17 +242,17 @@ const Settings: React.FC = () => {
               {airtableLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Chargement...
+                  {retryCount > 0 ? `Retry ${retryCount}/${maxRetries}...` : 'Chargement...'}
                 </>
               ) : (
                 <>
                   <Database className="w-4 h-4 mr-2" />
-                  Tester la connexion
+                  Recharger les données
                 </>
               )}
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              Testez la connexion et rechargez les données depuis Airtable. Vérifiez la console (F12) pour les détails.
+              Force le rechargement des données depuis Airtable. Vérifiez la console (F12) pour les détails.
             </p>
           </div>
         </div>
