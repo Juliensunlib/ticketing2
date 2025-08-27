@@ -12,14 +12,21 @@ class AirtableService {
   private async makeRequest(baseId: string, tableName: string, method: 'GET' | 'POST' | 'PATCH' = 'GET', data?: any) {
     const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
     
+    console.log('🌐 Tentative de requête Airtable:', {
+      url,
+      method,
+      baseId,
+      tableName,
+      hasApiKey: !!this.apiKey,
+      apiKeyLength: this.apiKey?.length
+    });
+
     const options: RequestInit = {
       method,
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       },
-      mode: 'cors',
-      cache: 'no-cache',
     };
 
     if (data && (method === 'POST' || method === 'PATCH')) {
@@ -27,9 +34,20 @@ class AirtableService {
     }
 
     try {
+      console.log('🔄 Envoi de la requête...');
       const response = await fetch(url, options);
       
+      console.log('📡 Réponse reçue:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Réponse d\'erreur Airtable:', errorText);
+        
         // Messages d'erreur plus explicites
         if (response.status === 401) {
           throw new Error(`Clé API Airtable invalide. Vérifiez VITE_AIRTABLE_API_KEY dans votre fichier .env`);
@@ -37,24 +55,34 @@ class AirtableService {
           throw new Error(`Base ou table Airtable introuvable. Base ID: ${baseId}, Table: ${tableName}. Vérifiez VITE_AIRTABLE_SUBSCRIBERS_BASE_ID et le nom de la table`);
         } else if (response.status === 403) {
           throw new Error(`Accès refusé à Airtable. Vérifiez les permissions de votre clé API`);
+        } else if (response.status === 422) {
+          throw new Error(`Erreur de validation Airtable (422). Vérifiez le nom de la table "${tableName}"`);
         } else {
-          throw new Error(`Erreur Airtable ${response.status}: ${response.statusText}`);
+          throw new Error(`Erreur Airtable ${response.status}: ${response.statusText}. Détails: ${errorText}`);
         }
       }
       
+      console.log('✅ Réponse OK, parsing JSON...');
       const result = await response.json();
+      console.log('📊 Données reçues:', {
+        recordsCount: result.records?.length || 0,
+        hasOffset: !!result.offset
+      });
       return result;
     } catch (error) {
+      console.error('❌ Erreur détaillée:', {
+        name: error?.constructor?.name,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       // Gestion spécifique de l'erreur "Failed to fetch"
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        console.error('❌ Détails de l\'erreur réseau:', {
-          url,
-          baseId,
-          tableName,
-          apiKeyPresent: !!this.apiKey,
-          apiKeyLength: this.apiKey?.length
-        });
-        throw new Error(`Impossible de se connecter à Airtable. URL: ${url}. Vérifiez votre connexion internet, les clés API et que la base/table existe.`);
+        throw new Error(`Erreur de réseau: Impossible de se connecter à Airtable. Vérifiez votre connexion internet et les paramètres CORS.`);
+      }
+      
+      if (error instanceof Error && error.message.includes('CORS')) {
+        throw new Error(`Erreur CORS: Airtable bloque la requête. Cela peut être dû aux paramètres de sécurité du navigateur.`);
       }
       
       throw error;
