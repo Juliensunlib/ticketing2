@@ -4,6 +4,7 @@ import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 
 const Settings: React.FC = () => {
   const { users, loading: usersLoading, createUser } = useSupabaseUsers();
+  const { subscribers, loading: airtableLoading, error: airtableError, loadData } = useAirtable();
   
   // Vérifier la configuration Airtable depuis les variables d'environnement
   const airtableConfig = {
