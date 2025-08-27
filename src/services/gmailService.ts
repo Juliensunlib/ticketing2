@@ -42,7 +42,8 @@ class GmailService {
   constructor() {
     this.clientId = import.meta.env.VITE_GMAIL_CLIENT_ID || '';
     this.clientSecret = import.meta.env.VITE_GMAIL_CLIENT_SECRET || '';
-    this.redirectUri = import.meta.env.VITE_GMAIL_REDIRECT_URI || 'https://ticketing-jade.vercel.app/auth/callback';
+    // Détecter automatiquement l'URL de redirection selon l'environnement
+    this.redirectUri = this.getRedirectUri();
     this.scope = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
     
     // Charger les tokens sauvegardés au démarrage
@@ -53,6 +54,25 @@ class GmailService {
     }
     
     console.log('🔧 Gmail Service initialisé pour abonne@sunlib.fr');
+  }
+
+  private getRedirectUri(): string {
+    // Si une URL de redirection est définie dans les variables d'environnement, l'utiliser
+    if (import.meta.env.VITE_GMAIL_REDIRECT_URI) {
+      return import.meta.env.VITE_GMAIL_REDIRECT_URI;
+    }
+    
+    // Sinon, détecter automatiquement selon l'environnement
+    const currentUrl = window.location.origin;
+    
+    if (currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1')) {
+      return `${currentUrl}/auth/callback`;
+    } else if (currentUrl.includes('vercel.app') || currentUrl.includes('ticketing-jade')) {
+      return 'https://ticketing-jade.vercel.app/auth/callback';
+    } else {
+      // Par défaut, utiliser l'URL actuelle
+      return `${currentUrl}/auth/callback`;
+    }
   }
 
   isConfigured(): boolean {
