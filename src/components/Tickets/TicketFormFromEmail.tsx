@@ -2,7 +2,7 @@ import { Save, X, Mail, User, Calendar, CheckCircle, AlertCircle } from 'lucide-
 import { useTickets } from '../../hooks/useTickets';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { useAirtable } from '../../hooks/useAirtable';
-import { Search } from 'lucide-react';
+import { Search, FileText, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 interface Email {
@@ -30,6 +30,10 @@ const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClos
   const [subscriberSearch, setSubscriberSearch] = useState('');
   const [showSubscriberDropdown, setShowSubscriberDropdown] = useState(false);
   const [subscriberType, setSubscriberType] = useState<'airtable' | 'email'>('email');
+  const [assignMode, setAssignMode] = useState<'new' | 'existing'>('new');
+  const [existingTicketSearch, setExistingTicketSearch] = useState('');
+  const [showExistingTicketDropdown, setShowExistingTicketDropdown] = useState(false);
+  const [selectedExistingTicket, setSelectedExistingTicket] = useState<any>(null);
   const [manualSubscriberName, setManualSubscriberName] = useState('');
   const [manualEmail, setManualEmail] = useState('');
   
@@ -112,47 +116,83 @@ const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
-    const newErrors: Record<string, string> = {};
-    if (!formData.title.trim()) newErrors.title = 'Le titre est obligatoire';
-    if (!formData.description.trim()) newErrors.description = 'La description est obligatoire';
-    
-    // Validation selon le type d'abonné
-    if (subscriberType === 'airtable' && !formData.subscriberId.trim()) {
-      newErrors.subscriberId = 'Veuillez choisir un abonné dans la liste';
-    } else if (subscriberType === 'email' && !manualEmail.trim()) {
-      newErrors.subscriberId = 'Veuillez saisir l\'adresse email';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    try {
-      // Préparer les données selon le type d'abonné
-      let ticketData = { ...formData };
-      
-      if (subscriberType === 'email') {
-        // Utiliser le nom extrait de l'email + l'adresse email
-        const displayName = manualSubscriberName ? 
-          `${manualSubscriberName} <${manualEmail}>` : 
-          manualEmail;
-        ticketData.subscriberId = displayName;
+    if (assignMode === 'existing') {
+      // Mode assignation à un ticket existant
+      if (!selectedExistingTicket) {
+        setErrors({ general: 'Veuillez sélectionner un ticket existant' });
+        return;
       }
       
-      createTicket(ticketData);
+      try {
+        // Ajouter un commentaire au ticket existant avec le contenu de l'email
+        const emailContent = `📧 **Nouvel email reçu**
+
+**De:** ${email.from}
+**Date:** ${new Date(email.date).toLocaleString('fr-FR')}
+**Sujet:** ${email.subject}
+
+**Contenu:**
+${email.body || email.snippet}`;
+        
+        addComment(selectedExistingTicket.id, emailContent);
+        
+        // Marquer l'email comme traité
+        const processedEmails = JSON.parse(localStorage.getItem('processed_emails') || '[]');
+        processedEmails.push(email.id);
+        localStorage.setItem('processed_emails', JSON.stringify(processedEmails));
+        
+        alert(`Email ajouté au ticket #${selectedExistingTicket.id} avec succès !`);
+        onSuccess();
+        onClose();
+        return;
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du commentaire:', error);
+        setErrors({ general: 'Erreur lors de l\'ajout du commentaire au ticket existant' });
+        return;
+      }
+    } else {
+      // Mode création d'un nouveau ticket
+      const newErrors: Record<string, string> = {};
+      if (!formData.title.trim()) newErrors.title = 'Le titre est obligatoire';
+      if (!formData.description.trim()) newErrors.description = 'La description est obligatoire';
       
-      // Marquer l'email comme traité dans le localStorage
-      const processedEmails = JSON.parse(localStorage.getItem('processed_emails') || '[]');
-      processedEmails.push(email.id);
-      localStorage.setItem('processed_emails', JSON.stringify(processedEmails));
-      
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('Erreur lors de la création du ticket:', error);
-      setErrors({ general: 'Erreur lors de la création du ticket' });
+      // Validation selon le type d'abonné
+      if (subscriberType === 'airtable' && !formData.subscriberId.trim()) {
+        newErrors.subscriberId = 'Veuillez choisir un abonné dans la liste';
+      } else if (subscriberType === 'email' && !manualEmail.trim()) {
+        newErrors.subscriberId = 'Veuillez saisir l\'adresse email';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+
+      try {
+        // Préparer les données selon le type d'abonné
+        let ticketData = { ...formData };
+        
+        if (subscriberType === 'email') {
+          // Utiliser le nom extrait de l'email + l'adresse email
+          const displayName = manualSubscriberName ? 
+            `${manualSubscriberName} <${manualEmail}>` : 
+            manualEmail;
+          ticketData.subscriberId = displayName;
+        }
+        
+        createTicket(ticketData);
+        
+        // Marquer l'email comme traité dans le localStorage
+        const processedEmails = JSON.parse(localStorage.getItem('processed_emails') || '[]');
+        processedEmails.push(email.id);
+        localStorage.setItem('processed_emails', JSON.stringify(processedEmails));
+        
+        onSuccess();
+        onClose();
+      } catch (error) {
+        console.error('Erreur lors de la création du ticket:', error);
+        setErrors({ general: 'Erreur lors de la création du ticket' });
+      }
     }
   };
 
@@ -167,6 +207,15 @@ const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClos
     );
   });
 
+  // Filtrer les tickets existants selon la recherche
+  const filteredExistingTickets = tickets.filter(ticket => {
+    const searchTerm = existingTicketSearch.toLowerCase();
+    return (
+      ticket.title.toLowerCase().includes(searchTerm) ||
+      ticket.subscriberId.toLowerCase().includes(searchTerm) ||
+      ticket.id.toLowerCase().includes(searchTerm)
+    );
+  });
   const handleSubscriberSelect = (subscriber: any) => {
     setFormData(prev => ({ ...prev, subscriberId: subscriber.id }));
     const subscriberDisplayName = `${subscriber.prenom} ${subscriber.nom} - ${subscriber.contratAbonne}`;

@@ -270,21 +270,40 @@ class GmailService {
     try {
       console.log('📧 Récupération des emails...');
       
-      // Récupérer la liste des messages
-      const listResponse: GmailListResponse = await this.makeGmailRequest(
-        `messages?maxResults=${maxResults}&q=in:inbox`
-      );
+      // Récupérer TOUS les messages de la boîte de réception
+      let allMessages: any[] = [];
+      let pageToken: string | undefined = undefined;
+      let pageCount = 0;
+      
+      do {
+        pageCount++;
+        console.log(`📧 Récupération page ${pageCount}...`);
+        
+        let query = `messages?maxResults=500&q=in:inbox`;
+        if (pageToken) {
+          query += `&pageToken=${pageToken}`;
+        }
+        
+        const listResponse: GmailListResponse = await this.makeGmailRequest(query);
+        
+        if (listResponse.messages) {
+          allMessages = allMessages.concat(listResponse.messages);
+          console.log(`📧 Page ${pageCount}: ${listResponse.messages.length} emails`);
+        }
+        
+        pageToken = listResponse.nextPageToken;
+      } while (pageToken);
 
-      if (!listResponse.messages || listResponse.messages.length === 0) {
+      if (allMessages.length === 0) {
         console.log('📭 Aucun email trouvé');
         return [];
       }
 
-      console.log(`📬 ${listResponse.messages.length} emails trouvés`);
+      console.log(`📬 TOTAL: ${allMessages.length} emails trouvés dans la boîte de réception`);
 
-      // Récupérer les détails de chaque message (limité à 20 pour les performances)
+      // Récupérer les détails de chaque message (limité aux 100 plus récents pour les performances)
       const messages = await Promise.all(
-        listResponse.messages.slice(0, 20).map(async (msg) => {
+        allMessages.slice(0, 100).map(async (msg) => {
           try {
             const messageDetail: GmailMessage = await this.makeGmailRequest(`messages/${msg.id}`);
             return this.parseMessage(messageDetail);
@@ -296,7 +315,7 @@ class GmailService {
       );
 
       const validMessages = messages.filter(msg => msg !== null);
-      console.log(`✅ ${validMessages.length} emails traités avec succès`);
+      console.log(`✅ ${validMessages.length} emails traités avec succès sur ${allMessages.length} total`);
       
       return validMessages;
     } catch (error) {
