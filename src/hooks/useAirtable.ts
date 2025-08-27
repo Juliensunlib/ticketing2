@@ -86,7 +86,10 @@ export const useAirtable = () => {
       console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés et mappés depuis Airtable`);
       
       if (subscribersData.length > 0) {
-        console.log('🔍 Premier abonné pour vérification:', subscribersData[0]);
+        console.log('🎉 SUCCÈS FINAL:', subscribersData.length, 'abonnés traités');
+        console.log('🔍 Premiers abonnés finaux:', subscribersData.slice(0, 5).map(s => 
+          `${s.prenom} ${s.nom} - ${s.contratAbonne}`
+        ));
       }
 
       setSubscribers(subscribersData);

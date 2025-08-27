@@ -171,20 +171,66 @@ class AirtableService {
       
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
-        nom: record.fields.Nom || record.fields.nom || '',
-        prenom: record.fields.Prenom || record.fields.prenom || '',
-        contratAbonne: record.fields['Contrat abonné'] || '',
-        nomEntreprise: record.fields['Nom de l\'entreprise'] || record.fields['Nom entreprise'] || '',
-        installateur: record.fields.Installateur || '',
-        lienCRM: record.fields['Lien CRM'] || '',
-        email: record.fields.Email || record.fields['Adresse email'] || record.fields.email || '',
-        telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
+        nom: record.fields['Nom'] || record.fields['nom'] || record.fields['NOM'] || '',
+        prenom: record.fields['Prénom'] || record.fields['Prenom'] || record.fields['prenom'] || record.fields['PRENOM'] || '',
+        contratAbonne: record.fields['Contrat abonné'] || record.fields['Contrat Abonné'] || record.fields['CONTRAT ABONNE'] || record.fields['Numéro de contrat'] || '',
+        nomEntreprise: record.fields['Nom de l\'entreprise'] || record.fields['Nom entreprise'] || record.fields['Entreprise'] || '',
+        installateur: record.fields['Installateur'] || record.fields['INSTALLATEUR'] || '',
+        lienCRM: record.fields['Lien CRM'] || record.fields['URL CRM'] || '',
+        email: record.fields['Email'] || record.fields['Adresse email'] || record.fields['email'] || record.fields['E-mail'] || '',
+        telephone: record.fields['Téléphone'] || record.fields['Numéro de téléphone'] || record.fields['Tel'] || record.fields['Phone'] || '',
       }));
       
-      console.log('✅ Premiers abonnés mappés:', subscribers.slice(0, 3));
-      console.log('✅ Exemple de champs disponibles:', allRecords[0]?.fields ? Object.keys(allRecords[0].fields) : 'Aucun champ');
+      // Debug détaillé des champs
+      if (allRecords.length > 0) {
+        const firstRecord = allRecords[0];
+        console.log('🔍 === ANALYSE DES CHAMPS AIRTABLE ===');
+        console.log('🔍 ID du premier enregistrement:', firstRecord.id);
+        console.log('🔍 Nombre total de champs:', Object.keys(firstRecord.fields).length);
+        console.log('🔍 Tous les champs disponibles:', Object.keys(firstRecord.fields));
+        
+        // Chercher les champs qui contiennent "nom", "prenom", "contrat"
+        const nomFields = Object.keys(firstRecord.fields).filter(key => 
+          key.toLowerCase().includes('nom') && !key.toLowerCase().includes('prenom')
+        );
+        const prenomFields = Object.keys(firstRecord.fields).filter(key => 
+          key.toLowerCase().includes('prenom') || key.toLowerCase().includes('prénom')
+        );
+        const contratFields = Object.keys(firstRecord.fields).filter(key => 
+          key.toLowerCase().includes('contrat') || key.toLowerCase().includes('abonne') || key.toLowerCase().includes('abonné')
+        );
+        const emailFields = Object.keys(firstRecord.fields).filter(key => 
+          key.toLowerCase().includes('email') || key.toLowerCase().includes('mail')
+        );
+        
+        console.log('🔍 Champs "nom" trouvés:', nomFields);
+        console.log('🔍 Champs "prénom" trouvés:', prenomFields);
+        console.log('🔍 Champs "contrat" trouvés:', contratFields);
+        console.log('🔍 Champs "email" trouvés:', emailFields);
+        
+        // Afficher les valeurs des premiers champs trouvés
+        if (nomFields.length > 0) {
+          console.log('🔍 Valeur du champ nom:', firstRecord.fields[nomFields[0]]);
+        }
+        if (prenomFields.length > 0) {
+          console.log('🔍 Valeur du champ prénom:', firstRecord.fields[prenomFields[0]]);
+        }
+        if (contratFields.length > 0) {
+          console.log('🔍 Valeur du champ contrat:', firstRecord.fields[contratFields[0]]);
+        }
+        
+        console.log('🔍 === FIN ANALYSE ===');
+      }
+      
+      // Filtrer les abonnés qui ont au moins un nom ou prénom
+      const validSubscribers = subscribers.filter(sub => 
+        sub.nom.trim() !== '' || sub.prenom.trim() !== '' || sub.contratAbonne.trim() !== ''
+      );
+      
+      console.log('✅ Abonnés valides après filtrage:', validSubscribers.length);
+      console.log('✅ Premiers abonnés mappés:', validSubscribers.slice(0, 3));
       console.log('📡 === FIN CONNEXION AIRTABLE ===');
-      return subscribers;
+      return validSubscribers;
     } catch (error) {
       console.error('❌ === ERREUR AIRTABLE ===', error);
       throw error;
