@@ -83,13 +83,18 @@ export const useAirtable = () => {
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
       const subscribersData = await airtableServiceRef.current.getSubscribers();
-      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés et mappés depuis Airtable`);
+      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés depuis Airtable`);
       
       if (subscribersData.length > 0) {
-        console.log('🎉 SUCCÈS FINAL:', subscribersData.length, 'abonnés traités');
-        console.log('🔍 Premiers abonnés finaux:', subscribersData.slice(0, 5).map(s => 
+        console.log('🎉 Premiers abonnés traités:', subscribersData.slice(0, 3).map(s => 
           `${s.prenom} ${s.nom} - ${s.contratAbonne}`
         ));
+        
+        // Vérifier qu'on a bien des données
+        const validSubscribers = subscribersData.filter(s => 
+          s.nom.trim() !== '' || s.prenom.trim() !== '' || s.contratAbonne.trim() !== ''
+        );
+        console.log('✅ Abonnés valides (avec au moins un champ rempli):', validSubscribers.length);
       }
 
       setSubscribers(subscribersData);

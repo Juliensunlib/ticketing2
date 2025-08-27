@@ -109,7 +109,14 @@ class AirtableService {
       console.log('🔧 Tentative de connexion à Airtable...');
       console.log('🔧 Base ID:', this.subscribersBaseId);
       console.log('🔧 API Key:', this.apiKey ? `${this.apiKey.substring(0, 15)}...` : 'MANQUANTE');
-      console.log('🔧 URL de test:', `https://api.airtable.com/v0/${this.subscribersBaseId}/${encodeURIComponent('Abonnés')}`);
+      
+      // Champs spécifiques à récupérer
+      const fieldsToRetrieve = [
+        'Nom', 'Prénom', 'Téléphone', 'Email', 
+        'Installateur', 'Contrat abonné', 'Lien CRM'
+      ];
+      
+      console.log('🔧 Champs recherchés:', fieldsToRetrieve);
       
       // Vérification préliminaire des paramètres
       if (!this.apiKey || !this.subscribersBaseId) {
@@ -136,9 +143,24 @@ class AirtableService {
         }
         
         const tableName = 'Abonnés';
-        const url = offset ? `${encodeURIComponent(tableName)}?offset=${offset}` : encodeURIComponent(tableName);
-        console.log('🔗 URL de requête:', url);
-        const response = await this.makeRequest(this.subscribersBaseId, tableName, 'GET');
+        
+        // Construire l'URL avec les champs spécifiques
+        let url = encodeURIComponent(tableName);
+        const params = new URLSearchParams();
+        
+        // Ajouter les champs spécifiques
+        fieldsToRetrieve.forEach(field => {
+          params.append('fields[]', field);
+        });
+        
+        if (offset) {
+          params.append('offset', offset);
+        }
+        
+        const fullUrl = `${url}?${params.toString()}`;
+        console.log('🔗 URL de requête:', fullUrl);
+        
+        const response = await this.makeRequest(this.subscribersBaseId, `${tableName}?${params.toString()}`, 'GET');
         
         if (response.records) {
           allRecords = allRecords.concat(response.records);
@@ -148,7 +170,7 @@ class AirtableService {
             if (response.records.length > 0) {
               console.log('📋 Exemple d\'enregistrement:', {
                 id: response.records[0].id,
-                fields: Object.keys(response.records[0].fields || {}),
+                availableFields: Object.keys(response.records[0].fields || {}),
                 sampleData: response.records[0].fields
               });
             }
@@ -171,53 +193,28 @@ class AirtableService {
       
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
-        nom: record.fields['Nom'] || record.fields['nom'] || record.fields['NOM'] || '',
-        prenom: record.fields['Prénom'] || record.fields['Prenom'] || record.fields['prenom'] || record.fields['PRENOM'] || '',
-        contratAbonne: record.fields['Contrat abonné'] || record.fields['Contrat Abonné'] || record.fields['CONTRAT ABONNE'] || record.fields['Numéro de contrat'] || '',
-        nomEntreprise: record.fields['Nom de l\'entreprise'] || record.fields['Nom entreprise'] || record.fields['Entreprise'] || '',
-        installateur: record.fields['Installateur'] || record.fields['INSTALLATEUR'] || '',
-        lienCRM: record.fields['Lien CRM'] || record.fields['URL CRM'] || '',
-        email: record.fields['Email'] || record.fields['Adresse email'] || record.fields['email'] || record.fields['E-mail'] || '',
-        telephone: record.fields['Téléphone'] || record.fields['Numéro de téléphone'] || record.fields['Tel'] || record.fields['Phone'] || '',
+        nom: record.fields['Nom'] || '',
+        prenom: record.fields['Prénom'] || '',
+        contratAbonne: record.fields['Contrat abonné'] || '',
+        nomEntreprise: '', // Pas demandé dans la liste
+        installateur: record.fields['Installateur'] || '',
+        lienCRM: record.fields['Lien CRM'] || '',
+        email: record.fields['Email'] || '',
+        telephone: record.fields['Téléphone'] || '',
       }));
       
-      // Debug détaillé des champs
+      // Debug simplifié
       if (allRecords.length > 0) {
         const firstRecord = allRecords[0];
-        console.log('🔍 === ANALYSE DES CHAMPS AIRTABLE ===');
+        console.log('🔍 === ANALYSE SIMPLIFIÉE ===');
         console.log('🔍 ID du premier enregistrement:', firstRecord.id);
-        console.log('🔍 Nombre total de champs:', Object.keys(firstRecord.fields).length);
-        console.log('🔍 Tous les champs disponibles:', Object.keys(firstRecord.fields));
+        console.log('🔍 Champs récupérés:', Object.keys(firstRecord.fields));
         
-        // Chercher les champs qui contiennent "nom", "prenom", "contrat"
-        const nomFields = Object.keys(firstRecord.fields).filter(key => 
-          key.toLowerCase().includes('nom') && !key.toLowerCase().includes('prenom')
-        );
-        const prenomFields = Object.keys(firstRecord.fields).filter(key => 
-          key.toLowerCase().includes('prenom') || key.toLowerCase().includes('prénom')
-        );
-        const contratFields = Object.keys(firstRecord.fields).filter(key => 
-          key.toLowerCase().includes('contrat') || key.toLowerCase().includes('abonne') || key.toLowerCase().includes('abonné')
-        );
-        const emailFields = Object.keys(firstRecord.fields).filter(key => 
-          key.toLowerCase().includes('email') || key.toLowerCase().includes('mail')
-        );
-        
-        console.log('🔍 Champs "nom" trouvés:', nomFields);
-        console.log('🔍 Champs "prénom" trouvés:', prenomFields);
-        console.log('🔍 Champs "contrat" trouvés:', contratFields);
-        console.log('🔍 Champs "email" trouvés:', emailFields);
-        
-        // Afficher les valeurs des premiers champs trouvés
-        if (nomFields.length > 0) {
-          console.log('🔍 Valeur du champ nom:', firstRecord.fields[nomFields[0]]);
-        }
-        if (prenomFields.length > 0) {
-          console.log('🔍 Valeur du champ prénom:', firstRecord.fields[prenomFields[0]]);
-        }
-        if (contratFields.length > 0) {
-          console.log('🔍 Valeur du champ contrat:', firstRecord.fields[contratFields[0]]);
-        }
+        // Vérifier les valeurs des champs demandés
+        fieldsToRetrieve.forEach(field => {
+          const value = firstRecord.fields[field];
+          console.log(`🔍 ${field}:`, value || 'VIDE');
+        });
         
         console.log('🔍 === FIN ANALYSE ===');
       }
