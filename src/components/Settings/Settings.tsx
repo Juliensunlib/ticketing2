@@ -23,6 +23,16 @@ const Settings: React.FC = () => {
   
   const isSupabaseConfigured = supabaseConfig.url && supabaseConfig.anonKey;
 
+  // Debug des variables d'environnement
+  React.useEffect(() => {
+    console.log('🔧 === DEBUG VARIABLES D\'ENVIRONNEMENT ===');
+    console.log('🔧 VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL ? 'PRÉSENTE' : 'MANQUANTE');
+    console.log('🔧 VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'PRÉSENTE' : 'MANQUANTE');
+    console.log('🔧 VITE_AIRTABLE_API_KEY:', import.meta.env.VITE_AIRTABLE_API_KEY ? 'PRÉSENTE' : 'MANQUANTE');
+    console.log('🔧 VITE_AIRTABLE_SUBSCRIBERS_BASE_ID:', import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_BASE_ID ? 'PRÉSENTE' : 'MANQUANTE');
+    console.log('🔧 === FIN DEBUG ===');
+  }, []);
+
   const [notifications, setNotifications] = useState({
     emailOnNewTicket: true,
     emailOnStatusChange: true,
@@ -158,6 +168,15 @@ const Settings: React.FC = () => {
                 {airtableError && (
                   <div className="text-red-800 text-xs mt-2">
                     ⚠️ Erreur: {airtableError}
+                    <div className="mt-2 p-2 bg-red-100 rounded text-xs">
+                      <strong>Actions recommandées:</strong>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Vérifiez vos permissions Airtable</li>
+                        <li>Confirmez que la table "Abonnés" existe</li>
+                        <li>Vérifiez le Base ID dans l'URL Airtable</li>
+                        <li>Testez votre clé API dans l'API Explorer Airtable</li>
+                      </ul>
+                    </div>
                     {retryCount > 0 && (
                       <div className="mt-1">
                         🔄 Tentatives de reconnexion: {retryCount}/{maxRetries}
@@ -176,15 +195,22 @@ const Settings: React.FC = () => {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <h4 className="text-sm font-medium text-red-900 mb-2 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                Variables Vercel manquantes
+                Configuration Airtable manquante
               </h4>
               <div className="text-sm text-red-800 space-y-2">
-                <p>Pour configurer Airtable, ajoutez ces variables d'environnement dans Vercel :</p>
+                <p>Pour configurer Airtable, ajoutez ces variables d'environnement :</p>
                 <div className="bg-red-100 rounded p-3 font-mono text-xs space-y-1">
                   <div>VITE_AIRTABLE_API_KEY=votre_clé_api</div>
                   <div>VITE_AIRTABLE_SUBSCRIBERS_BASE_ID=id_base_abonnés</div>
                 </div>
-                <p className="text-xs">Ces variables sont configurées dans le dashboard Vercel → Settings → Environment Variables</p>
+                <div className="bg-yellow-100 border border-yellow-300 rounded p-2 mt-2">
+                  <p className="text-xs font-medium text-yellow-800">Comment obtenir ces valeurs:</p>
+                  <ul className="text-xs text-yellow-700 mt-1 space-y-1">
+                    <li>• <strong>Clé API:</strong> Airtable → Account → API → Generate API key</li>
+                    <li>• <strong>Base ID:</strong> Dans l'URL de votre base (app...)</li>
+                    <li>• <strong>Table:</strong> Doit s'appeler exactement "Abonnés"</li>
+                  </ul>
+                </div>
               </div>
             </div>
           )}
@@ -192,9 +218,9 @@ const Settings: React.FC = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-blue-900 mb-2">Structure des bases Airtable requise :</h4>
             <div className="text-xs text-blue-800 space-y-1">
-              <p><strong>Base Abonnés :</strong></p>
+              <p><strong>Base Abonnés (ID: {airtableConfig.subscribersBaseId || 'non configuré'}) :</strong></p>
               <ul className="ml-4 space-y-1">
-                <li>• Table "Abonnés" : Nom, Prenom, Contrat abonné, Nom de l'entreprise (from Installateur)</li>
+                <li>• Table <strong>"Abonnés"</strong> (exactement ce nom) : Nom, Prenom, Contrat abonné, Email</li>
                 <li>• Table "Tickets" : pour synchronisation des tickets créés</li>
               </ul>
             </div>
@@ -203,11 +229,11 @@ const Settings: React.FC = () => {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-yellow-900 mb-2">Vérifications importantes :</h4>
             <div className="text-xs text-yellow-800 space-y-1">
-              <p><strong>Clé API :</strong> Airtable → Account → API → Generate API key</p>
-              <p><strong>ID de base :</strong> Dans l'URL de votre base (app...)</p>
-              <p><strong>Noms des tables :</strong> Respecter exactement la casse et les espaces</p>
-              <p><strong>Permissions :</strong> La clé API doit avoir accès en lecture aux deux bases</p>
-              <p><strong>Redémarrage requis :</strong> Après modification du .env</p>
+              <p><strong>✅ Clé API :</strong> Doit commencer par "pat" ou "key"</p>
+              <p><strong>✅ Base ID :</strong> Doit commencer par "app" (trouvé dans l'URL)</p>
+              <p><strong>✅ Table "Abonnés" :</strong> Nom exact, sensible à la casse</p>
+              <p><strong>✅ Permissions :</strong> Clé API avec accès lecture à la base</p>
+              <p><strong>✅ Test :</strong> Utilisez l'API Explorer d'Airtable pour tester</p>
             </div>
           </div>
         </div>
