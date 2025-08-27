@@ -525,9 +525,12 @@ Priorité: ${currentTicket.priority}`;
                     </div>
                   )}
                   
-                  {currentTicket.installerId && (
+                  {currentTicket.installerId && !subscriber?.installateur && (
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-gray-600">Installateur (manuel)</span>
+                      <span className="text-sm text-gray-600 flex items-center">
+                        <Building className="w-3 h-3 mr-1" />
+                        Installateur (manuel)
+                      </span>
                       <span className="text-sm font-medium text-gray-900">{currentTicket.installerId}</span>
                     </div>
                   )}
