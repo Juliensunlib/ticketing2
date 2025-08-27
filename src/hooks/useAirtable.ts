@@ -7,11 +7,16 @@ const getAirtableConfig = () => {
   const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
   const subscribersBaseId = import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_BASE_ID;
 
-  console.log('🔧 Variables d\'environnement Airtable:');
-  console.log('🔧 API Key présente:', !!apiKey);
-  console.log('🔧 Base ID présente:', !!subscribersBaseId);
-  console.log('🔧 API Key (début):', apiKey ? apiKey.substring(0, 10) + '...' : 'MANQUANTE');
-  console.log('🔧 Base ID:', subscribersBaseId || 'MANQUANTE');
+  console.log('🔧 === DIAGNOSTIC AIRTABLE ===');
+  console.log('🔧 API Key présente:', !!apiKey, apiKey ? `(${apiKey.substring(0, 15)}...)` : '');
+  console.log('🔧 Base ID présente:', !!subscribersBaseId, subscribersBaseId || '');
+  console.log('🔧 Toutes les variables env:', {
+    VITE_AIRTABLE_API_KEY: import.meta.env.VITE_AIRTABLE_API_KEY ? 'SET' : 'MISSING',
+    VITE_AIRTABLE_SUBSCRIBERS_BASE_ID: import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_BASE_ID ? 'SET' : 'MISSING',
+    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING',
+    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
+  });
+  console.log('🔧 === FIN DIAGNOSTIC ===');
 
   if (!apiKey || !subscribersBaseId || apiKey === 'votre_clé_api_airtable' || subscribersBaseId === 'id_de_votre_base_abonnés') {
     console.warn('⚠️ Configuration Airtable incomplète. Variables Vercel non configurées ou invalides.');
@@ -86,6 +91,26 @@ export const useAirtable = () => {
       
       const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
       
+      // Messages d'aide spécifiques selon le type d'erreur
+      let helpMessage = '';
+      if (errorMessage.includes('INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND')) {
+        helpMessage = '\n\n🔧 AIDE AU DIAGNOSTIC:\n' +
+          '1. Vérifiez que votre clé API Airtable a les permissions pour cette base\n' +
+          '2. Confirmez que la table "Abonnés" existe dans votre base\n' +
+          '3. Vérifiez que le Base ID est correct (commence par "app")\n' +
+          '4. Assurez-vous que la clé API n\'a pas expiré';
+      } else if (errorMessage.includes('403') || errorMessage.includes('Accès refusé')) {
+        helpMessage = '\n\n🔧 AIDE AU DIAGNOSTIC:\n' +
+          '1. Votre clé API n\'a pas les permissions nécessaires\n' +
+          '2. Allez dans Airtable → Account → API → Vérifiez les permissions\n' +
+          '3. La clé doit avoir accès en lecture à la base spécifiée';
+      } else if (errorMessage.includes('404') || errorMessage.includes('introuvable')) {
+        helpMessage = '\n\n🔧 AIDE AU DIAGNOSTIC:\n' +
+          '1. Vérifiez le Base ID dans l\'URL de votre base Airtable\n' +
+          '2. Confirmez que la table s\'appelle exactement "Abonnés"\n' +
+          '3. Vérifiez qu\'il n\'y a pas de fautes de frappe';
+      }
+      
       // Retry logic
       if (retryCount < maxRetries - 1 && !errorMessage.includes('401') && !errorMessage.includes('403')) {
         console.log(`🔄 Tentative de retry dans 2 secondes... (${retryCount + 1}/${maxRetries})`);
@@ -96,7 +121,7 @@ export const useAirtable = () => {
         return;
       }
       
-      setError(errorMessage);
+      setError(errorMessage + helpMessage);
       setSubscribers([]);
       setRetryCount(0);
     } finally {

@@ -41,7 +41,8 @@ class AirtableService {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: Object.fromEntries(response.headers.entries()),
+        url: response.url
       });
       
       if (!response.ok) {
@@ -51,12 +52,17 @@ class AirtableService {
         // Messages d'erreur plus explicites
         if (response.status === 401) {
           throw new Error(`Clé API Airtable invalide. Vérifiez VITE_AIRTABLE_API_KEY dans votre fichier .env`);
-        } else if (response.status === 404) {
-          throw new Error(`Base ou table Airtable introuvable. Base ID: ${baseId}, Table: ${tableName}. Vérifiez VITE_AIRTABLE_SUBSCRIBERS_BASE_ID et le nom de la table`);
         } else if (response.status === 403) {
-          throw new Error(`Accès refusé à Airtable. Vérifiez les permissions de votre clé API`);
+          throw new Error(`Accès refusé à Airtable. Vérifiez que votre clé API a les permissions pour accéder à la base ${baseId} et à la table "${tableName}"`);
+        } else if (response.status === 404) {
+          throw new Error(`Base ou table Airtable introuvable. Base ID: ${baseId}, Table: "${tableName}". Vérifiez VITE_AIRTABLE_SUBSCRIBERS_BASE_ID et que la table "Abonnés" existe`);
         } else if (response.status === 422) {
-          throw new Error(`Erreur de validation Airtable (422). Vérifiez le nom de la table "${tableName}"`);
+          // Erreur 422 souvent liée aux permissions ou modèle introuvable
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.type === 'INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND') {
+            throw new Error(`Permissions insuffisantes ou modèle introuvable. Vérifiez que votre clé API a accès à la base ${baseId} et que la table "Abonnés" existe avec les bonnes permissions`);
+          }
+          throw new Error(`Erreur de validation Airtable (422). Détails: ${errorText}`);
         } else {
           throw new Error(`Erreur Airtable ${response.status}: ${response.statusText}. Détails: ${errorText}`);
         }
@@ -91,9 +97,24 @@ class AirtableService {
 
   async getSubscribers(): Promise<Subscriber[]> {
     try {
-      console.log('📡 Connexion à Airtable...');
-      console.log('🔧 Base ID utilisée:', this.subscribersBaseId);
-      console.log('🔧 API Key présente:', !!this.apiKey);
+      console.log('📡 === CONNEXION AIRTABLE ===');
+      console.log('🔧 Tentative de connexion à Airtable...');
+      console.log('🔧 Base ID:', this.subscribersBaseId);
+      console.log('🔧 API Key:', this.apiKey ? `${this.apiKey.substring(0, 15)}...` : 'MANQUANTE');
+      console.log('🔧 URL de test:', `https://api.airtable.com/v0/${this.subscribersBaseId}/Abonnés`);
+      
+      // Vérification préliminaire des paramètres
+      if (!this.apiKey || !this.subscribersBaseId) {
+        throw new Error('Configuration Airtable incomplète: clé API ou Base ID manquante');
+      }
+      
+      if (!this.apiKey.startsWith('pat') && !this.apiKey.startsWith('key')) {
+        throw new Error('Format de clé API Airtable invalide. La clé doit commencer par "pat" ou "key"');
+      }
+      
+      if (!this.subscribersBaseId.startsWith('app')) {
+        throw new Error('Format de Base ID Airtable invalide. L\'ID doit commencer par "app"');
+      }
       
       // Récupérer tous les enregistrements avec pagination
       let allRecords: any[] = [];
@@ -103,7 +124,7 @@ class AirtableService {
       do {
         pageCount++;
         if (pageCount === 1) {
-          console.log(`📄 Récupération des données...`);
+          console.log(`📄 Récupération page ${pageCount}...`);
         }
         
         const url = offset ? `Abonnés?offset=${offset}` : 'Abonnés';
@@ -113,7 +134,7 @@ class AirtableService {
         if (response.records) {
           allRecords = allRecords.concat(response.records);
           if (pageCount === 1) {
-            console.log(`📊 ${response.records.length} enregistrements trouvés`);
+            console.log(`📊 ${response.records.length} enregistrements sur cette page`);
             // Afficher un exemple d'enregistrement pour debug
             if (response.records.length > 0) {
               console.log('📋 Exemple d\'enregistrement:', {
@@ -129,12 +150,15 @@ class AirtableService {
       } while (offset);
       
       if (allRecords.length === 0) {
-        console.warn('⚠️ Aucun abonné trouvé dans Airtable');
-        console.warn('⚠️ Vérifiez que la table "Abonnés" existe et contient des données');
+        console.warn('⚠️ === AUCUN ABONNÉ TROUVÉ ===');
+        console.warn('⚠️ Vérifiez:');
+        console.warn('⚠️ 1. Table "Abonnés" existe dans Airtable');
+        console.warn('⚠️ 2. Table contient des données');
+        console.warn('⚠️ 3. Permissions de la clé API');
         return [];
       }
       
-      console.log(`✅ ${allRecords.length} abonnés récupérés depuis Airtable`);
+      console.log(`✅ TOTAL: ${allRecords.length} abonnés récupérés`);
       
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
@@ -148,10 +172,11 @@ class AirtableService {
         telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
       }));
       
-      console.log('✅ Abonnés traités:', subscribers.slice(0, 3));
+      console.log('✅ Premiers abonnés:', subscribers.slice(0, 3));
+      console.log('📡 === FIN CONNEXION AIRTABLE ===');
       return subscribers;
     } catch (error) {
-      console.error('❌ Erreur détaillée Airtable:', error);
+      console.error('❌ === ERREUR AIRTABLE ===', error);
       throw error;
     }
   }
