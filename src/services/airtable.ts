@@ -54,12 +54,7 @@ class AirtableService {
 
   async getSubscribers(): Promise<Subscriber[]> {
     try {
-      console.log('🔍 Tentative de connexion à Airtable...');
-      console.log('🔍 Base ID:', this.subscribersBaseId);
-      console.log('🔍 API Key (premiers caractères):', this.apiKey.substring(0, 10) + '...');
-      console.log('🔍 API Key (derniers caractères):', '...' + this.apiKey.slice(-10));
-      console.log('🔍 Longueur de la clé API:', this.apiKey.length);
-      console.log('🔍 Type de clé (PAT?):', this.apiKey.startsWith('pat') ? 'Personal Access Token' : 'Legacy API Key');
+      console.log('📡 Connexion à Airtable...');
       
       // Récupérer tous les enregistrements avec pagination
       let allRecords: any[] = [];
@@ -68,15 +63,18 @@ class AirtableService {
       
       do {
         pageCount++;
-        console.log(`📄 Récupération de la page ${pageCount}...`);
+        if (pageCount === 1) {
+          console.log(`📄 Récupération des données...`);
+        }
         
         const url = offset ? `Abonnés?offset=${offset}` : 'Abonnés';
-        console.log('🌐 URL de requête:', `https://api.airtable.com/v0/${this.subscribersBaseId}/${url}`);
         const response = await this.makeRequest(this.subscribersBaseId, url);
         
         if (response.records) {
           allRecords = allRecords.concat(response.records);
-          console.log(`📊 Page ${pageCount}: ${response.records.length} enregistrements (Total: ${allRecords.length})`);
+          if (pageCount === 1) {
+            console.log(`📊 ${response.records.length} enregistrements trouvés`);
+          }
         }
         
         offset = response.offset;
@@ -87,7 +85,7 @@ class AirtableService {
         return [];
       }
       
-      console.log(`✅ TOTAL: ${allRecords.length} abonnés récupérés depuis Airtable en ${pageCount} page(s)`);
+      console.log(`✅ ${allRecords.length} abonnés récupérés depuis Airtable`);
       
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
@@ -101,8 +99,6 @@ class AirtableService {
         telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
       }));
       
-      console.log('✅ Premiers abonnés traités:', subscribers.slice(0, 3)); // Afficher les 3 premiers pour debug
-      console.log('✅ Derniers abonnés traités:', subscribers.slice(-3)); // Afficher les 3 derniers pour debug
       return subscribers;
     } catch (error) {
       console.error('❌ Erreur détaillée Airtable:', error);

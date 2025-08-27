@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AirtableService from '../services/airtable';
 import { Subscriber } from '../types';
 
@@ -22,35 +22,49 @@ const getAirtableConfig = () => {
 };
 
 export const useAirtable = () => {
-  const [airtableService, setAirtableService] = useState<AirtableService | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
+  
+  // Utiliser des refs pour éviter les re-renders infinis
+  const airtableServiceRef = useRef<AirtableService | null>(null);
+  const isInitializedRef = useRef(false);
+  const isLoadingRef = useRef(false);
 
-  // Initialiser le service Airtable une seule fois
+  // Initialiser le service une seule fois
   useEffect(() => {
-    const config = getAirtableConfig();
-    if (config) {
-      console.log('🔧 Configuration Airtable détectée');
-      const service = new AirtableService(config.apiKey, config.subscribersBaseId);
-      setAirtableService(service);
-    } else {
-      console.warn('⚠️ Configuration Airtable manquante');
-      setError('Configuration Airtable manquante. Vérifiez les variables d\'environnement Vercel.');
+    if (!isInitializedRef.current) {
+      const config = getAirtableConfig();
+      if (config) {
+        console.log('🔧 Configuration Airtable détectée');
+        airtableServiceRef.current = new AirtableService(config.apiKey, config.subscribersBaseId);
+        isInitializedRef.current = true;
+        
+        // Charger les données automatiquement après initialisation
+        loadDataInternal();
+      } else {
+        console.warn('⚠️ Configuration Airtable manquante');
+        setError('Configuration Airtable manquante. Vérifiez les variables d\'environnement Vercel.');
+        isInitializedRef.current = true;
+      }
     }
   }, []);
 
-  // Charger les données quand le service est initialisé
-  useEffect(() => {
-    if (airtableService && subscribers.length === 0 && !loading && !error) {
-      console.log('🔄 Chargement automatique des abonnés Airtable');
-      loadDataWithService(airtableService);
+  const loadDataInternal = async (isRetry = false) => {
+    if (isLoadingRef.current) {
+      console.log('🔄 Chargement déjà en cours, ignorer cette tentative');
+      return;
     }
-  }, [airtableService]);
 
-  const loadDataWithService = async (service: AirtableService, isRetry = false) => {
+    if (!airtableServiceRef.current) {
+      console.warn('⚠️ Service Airtable non initialisé');
+      setError('Service Airtable non configuré. Vérifiez les variables d\'environnement Vercel.');
+      return;
+    }
+
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
     
@@ -58,7 +72,7 @@ export const useAirtable = () => {
       console.log(`📋 ${isRetry ? 'Nouvelle tentative' : 'Récupération'} des abonnés depuis Airtable`);
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
-      const subscribersData = await service.getSubscribers();
+      const subscribersData = await airtableServiceRef.current.getSubscribers();
       console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable`);
 
       setSubscribers(subscribersData);
@@ -74,7 +88,7 @@ export const useAirtable = () => {
         console.log(`🔄 Tentative de retry dans 2 secondes... (${retryCount + 1}/${maxRetries})`);
         setRetryCount(prev => prev + 1);
         setTimeout(() => {
-          loadDataWithService(service, true);
+          loadDataInternal(true);
         }, 2000);
         return;
       }
@@ -84,18 +98,18 @@ export const useAirtable = () => {
       setRetryCount(0);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
   const loadData = async () => {
-    if (!airtableService) {
-      console.warn('⚠️ Service Airtable non initialisé');
-      setError('Service Airtable non configuré. Vérifiez les variables d\'environnement Vercel.');
+    if (!isInitializedRef.current) {
+      console.warn('⚠️ Service Airtable pas encore initialisé');
       return;
     }
 
     setRetryCount(0); // Reset retry count for manual reload
-    await loadDataWithService(airtableService);
+    await loadDataInternal();
   };
 
   const forceReload = async () => {
@@ -104,9 +118,10 @@ export const useAirtable = () => {
     setError(null);
     setRetryCount(0);
     setSubscribers([]); // Clear current data
+    isLoadingRef.current = false; // Reset loading flag
 
-    if (airtableService) {
-      await loadDataWithService(airtableService);
+    if (airtableServiceRef.current) {
+      await loadDataInternal();
     } else {
       setError('Service Airtable non disponible');
       setLoading(false);
@@ -114,19 +129,19 @@ export const useAirtable = () => {
   };
 
   const createTicket = async (ticketData: any) => {
-    if (!airtableService) {
+    if (!airtableServiceRef.current) {
       console.warn('Service Airtable non configuré, ticket créé uniquement dans Supabase');
       return null;
     }
-    return await airtableService.createTicketRecord(ticketData);
+    return await airtableServiceRef.current.createTicketRecord(ticketData);
   };
 
   const updateTicket = async (recordId: string, ticketData: any) => {
-    if (!airtableService) {
+    if (!airtableServiceRef.current) {
       console.warn('Service Airtable non configuré, mise à jour uniquement dans Supabase');
       return null;
     }
-    return await airtableService.updateTicketRecord(recordId, ticketData);
+    return await airtableServiceRef.current.updateTicketRecord(recordId, ticketData);
   };
 
   return {
