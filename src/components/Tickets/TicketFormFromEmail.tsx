@@ -482,8 +482,13 @@ ${email.body || email.snippet}`;
                 </select>
               </div>
             </div>
+              </div>
+            )}
+          </div>
 
             {/* Assignation */}
+          {assignMode === 'new' && (
+            <div className="space-y-4">
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Assignation</h3>
 
