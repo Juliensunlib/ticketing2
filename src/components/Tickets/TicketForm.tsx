@@ -394,7 +394,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                   Assigné à
                 </label>
                 <select
-                  value={formData.assignedTo}
+                  value={formData.assignedTo || ''}
                   onChange={(e) => handleChange('assignedTo', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
@@ -407,7 +407,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                 </select>
                 {employees.length === 0 && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Aucun collaborateur trouvé. Vérifiez la configuration Supabase dans Paramètres.
+                    Chargement des collaborateurs... ({employees.length} trouvés)
                   </p>
                 )}
               </div>
