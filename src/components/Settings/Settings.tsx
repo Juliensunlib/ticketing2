@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Key, Database, Bell, Users, Shield, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
+import { useAirtable } from '../../hooks/useAirtable';
 
 const Settings: React.FC = () => {
   const { users, loading: usersLoading, createUser } = useSupabaseUsers();
