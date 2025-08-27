@@ -27,7 +27,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
     origin: (ticket?.origin || 'SunLib') as 'Installateur' | 'SunLib' | 'Abonné',
     channel: (ticket?.channel || 'Formulaire de contact') as 'Mail' | 'Téléphone' | 'Formulaire de contact' | 'Site abonné' | 'Application SunLib',
     createdBy: 'emp1',
-    assignedTo: ticket?.assignedTo || null,
+    assignedTo: ticket?.assignedTo || '',
     subscriberId: ticket?.subscriberId || '',
     installerId: ticket?.installerId || ''
   });
@@ -394,7 +394,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                   Assigné à
                 </label>
                 <select
-                  value={formData.assignedTo || ''}
+                  value={formData.assignedTo}
                   onChange={(e) => handleChange('assignedTo', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
