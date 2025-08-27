@@ -425,34 +425,6 @@ const Settings: React.FC = () => {
                   </div>
                 )}
               </div>
-                            <li><strong>Clé API:</strong> Vérifiez qu'elle a accès à la base {airtableConfig.subscribersBaseId}</li>
-                            <li><strong>Table:</strong> Confirmez qu'une table "Abonnés" existe dans votre base</li>
-                            <li><strong>Permissions:</strong> Votre clé API doit avoir les droits de lecture</li>
-                            <li><strong>Test:</strong> Utilisez l'API Explorer Airtable pour tester</li>
-                            <li><strong>URL de test:</strong> https://airtable.com/api</li>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                          <div className="mt-2 p-2 bg-yellow-100 rounded">
-                            <p className="font-medium text-yellow-800">🔍 Vérification rapide:</p>
-                            <p className="text-yellow-700">
-                              1. Ouvrez votre base Airtable<br/>
-                              2. Vérifiez l'URL: doit contenir "{airtableConfig.subscribersBaseId}"<br/>
-                              3. Confirmez qu'il y a une table nommée exactement "Abonnés"<br/>
-                              4. Testez votre clé API dans l'API Explorer
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          user.user_group === 'admin' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {user.user_group}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Formulaire d'ajout d'utilisateur */}
               <div>
