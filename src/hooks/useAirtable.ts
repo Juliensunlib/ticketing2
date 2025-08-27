@@ -83,7 +83,11 @@ export const useAirtable = () => {
       console.log('🔄 Tentative', retryCount + 1, 'sur', maxRetries);
       
       const subscribersData = await airtableServiceRef.current.getSubscribers();
-      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés avec succès depuis Airtable`);
+      console.log(`🎉 SUCCÈS: ${subscribersData.length} abonnés récupérés et mappés depuis Airtable`);
+      
+      if (subscribersData.length > 0) {
+        console.log('🔍 Premier abonné pour vérification:', subscribersData[0]);
+      }
 
       setSubscribers(subscribersData);
       setRetryCount(0); // Reset retry count on success

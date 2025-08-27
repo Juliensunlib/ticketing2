@@ -49,16 +49,14 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
     console.log('👥 Nombre d\'employés Supabase:', employees.length);
     
     if (subscribers.length > 0) {
+      console.log('✅ Premiers abonnés dans TicketForm:', subscribers.slice(0, 3));
+      console.log('✅ Structure du premier abonné:', subscribers[0]);
+    }
+    
+    if (subscribers.length > 0) {
       console.log('✅ Premiers abonnés:', subscribers.slice(0, 3).map(s => `${s.prenom} ${s.nom} - ${s.contratAbonne}`));
     } else {
       console.log('⚠️ Aucun abonné chargé depuis Airtable');
-      console.log('⚠️ Tentative de rechargement...');
-      // Essayer de recharger si pas de données
-      setTimeout(() => {
-        if (subscribers.length === 0) {
-          loadData();
-        }
-      }, 1000);
     }
     
     if (employees.length > 0) {

@@ -171,17 +171,18 @@ class AirtableService {
       
       const subscribers = allRecords.map((record: any) => ({
         id: record.id,
-        nom: record.fields.Nom || '',
-        prenom: record.fields.Prenom || '',
+        nom: record.fields.Nom || record.fields.nom || '',
+        prenom: record.fields.Prenom || record.fields.prenom || '',
         contratAbonne: record.fields['Contrat abonné'] || '',
-        nomEntreprise: record.fields['Nom de l\'entreprise'] || '',
+        nomEntreprise: record.fields['Nom de l\'entreprise'] || record.fields['Nom entreprise'] || '',
         installateur: record.fields.Installateur || '',
         lienCRM: record.fields['Lien CRM'] || '',
-        email: record.fields.Email || record.fields['Adresse email'] || '',
+        email: record.fields.Email || record.fields['Adresse email'] || record.fields.email || '',
         telephone: record.fields.Téléphone || record.fields['Numéro de téléphone'] || '',
       }));
       
-      console.log('✅ Premiers abonnés:', subscribers.slice(0, 3));
+      console.log('✅ Premiers abonnés mappés:', subscribers.slice(0, 3));
+      console.log('✅ Exemple de champs disponibles:', allRecords[0]?.fields ? Object.keys(allRecords[0].fields) : 'Aucun champ');
       console.log('📡 === FIN CONNEXION AIRTABLE ===');
       return subscribers;
     } catch (error) {
