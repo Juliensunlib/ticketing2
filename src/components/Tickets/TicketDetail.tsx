@@ -670,7 +670,7 @@ L'équipe SunLib
                         type="text"
                         value={emailSubject}
                         onChange={(e) => setEmailSubject(e.target.value)}
-                        placeholder={`Réponse à votre ticket #${currentTicket.id} - ${currentTicket.title}`}
+                        placeholder={`Réponse à votre ticket #${currentTicket.ticketNumber} - ${currentTicket.title}`}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2"
                       />
                       <label className="text-xs text-gray-500">Sujet de l'email (optionnel)</label>
