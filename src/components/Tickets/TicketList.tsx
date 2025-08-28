@@ -20,6 +20,7 @@ const TicketList: React.FC<TicketListProps> = ({ onViewTicket, onEditTicket }) =
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.ticketNumber.toString().includes(searchTerm) ||
                          ticket.id.includes(searchTerm);
     const matchesStatus = !statusFilter || ticket.status === statusFilter;
     const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
@@ -77,7 +78,7 @@ const TicketList: React.FC<TicketListProps> = ({ onViewTicket, onEditTicket }) =
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Rechercher par titre, description ou ID..."
+                placeholder="Rechercher par titre, description ou numéro de ticket..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -158,7 +159,7 @@ const TicketList: React.FC<TicketListProps> = ({ onViewTicket, onEditTicket }) =
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-sm font-medium text-gray-900">
-                      {ticket.subscriberId} - {ticket.title}
+                      #{ticket.ticketNumber} - {ticket.subscriberId} - {ticket.title}
                     </h3>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
                       {ticket.priority}

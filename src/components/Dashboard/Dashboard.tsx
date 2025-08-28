@@ -151,6 +151,38 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Tickets récents */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Tickets récents</h2>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {recentTickets.slice(0, 5).map((ticket) => (
+            <div key={ticket.id} className="p-4 hover:bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">
+                      #{ticket.ticketNumber}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
+                      {ticket.priority}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                      {ticket.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-900 font-medium">{ticket.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {ticket.subscriberId} • {new Date(ticket.createdAt).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
