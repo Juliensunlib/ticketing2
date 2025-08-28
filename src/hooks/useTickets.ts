@@ -91,7 +91,10 @@ export const useTickets = () => {
 
       console.log('🔍 useTickets.createTicket - Données Supabase:', supabaseTicketData);
       
-      return createSupabaseTicket(supabaseTicketData);
+      return createSupabaseTicket(supabaseTicketData).then((createdTicket) => {
+        console.log('✅ Ticket créé avec le numéro:', createdTicket?.ticket_number);
+        return createdTicket;
+      });
     } catch (error) {
       console.error('❌ useTickets.createTicket - Erreur lors de la préparation:', error);
       throw error;
