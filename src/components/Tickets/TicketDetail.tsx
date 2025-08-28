@@ -113,13 +113,6 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
     }
 
     try {
-      // Vérifier l'authentification Gmail avant d'envoyer
-      if (!gmailService.isAuthenticated()) {
-        alert('Vous devez être connecté à Gmail pour envoyer des emails. Allez dans l\'onglet "Emails Abonnés" pour vous connecter.');
-        setSendingComment(false);
-        return;
-      }
-
       const subject = emailSubject || `Réponse à votre ticket #${currentTicket.ticketNumber} - ${currentTicket.title}`;
       const emailBody = `Bonjour,
 
