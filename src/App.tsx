@@ -10,6 +10,7 @@ import TicketDetail from './components/Tickets/TicketDetail';
 import GmailIntegration from './components/Gmail/GmailIntegration';
 import TicketFormFromEmail from './components/Tickets/TicketFormFromEmail';
 import Settings from './components/Settings/Settings';
+import AdvancedAnalytics from './components/Analytics/AdvancedAnalytics';
 import { Ticket } from './types';
 
 interface Email {
@@ -99,14 +100,7 @@ const AppContent: React.FC = () => {
         return <Settings />;
       case 'analytics':
         return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Statistiques</h1>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <p className="text-gray-600">
-                Les statistiques avancées seront disponibles prochainement.
-              </p>
-            </div>
-          </div>
+          <AdvancedAnalytics />
         );
       default:
         return <Dashboard />;
