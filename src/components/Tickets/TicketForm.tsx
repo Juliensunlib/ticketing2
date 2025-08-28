@@ -85,8 +85,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
       // Préparer les données avec le nom de l'abonné
       const ticketDataWithSubscriberName = {
         ...formData,
-        subscriberId: subscriberSearch, // Utilise le nom complet affiché
-        subscriber_name: subscriberSearch // Ajouter aussi le champ subscriber_name pour Supabase
+        subscriberId: subscriberSearch || formData.subscriberId, // Utilise le nom complet affiché
+        subscriber_name: subscriberSearch || formData.subscriberId // Ajouter aussi le champ subscriber_name pour Supabase
       };
       
       // Supprimer les pièces jointes des données de mise à jour pour éviter les erreurs
@@ -133,9 +133,10 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
   });
 
   const handleSubscriberSelect = (subscriber: any) => {
-    setFormData(prev => ({ ...prev, subscriberId: subscriber.id }));
     const subscriberDisplayName = `${subscriber.prenom} ${subscriber.nom} - ${subscriber.contratAbonne}`;
     setSubscriberSearch(subscriberDisplayName);
+    // Stocker le nom complet dans formData.subscriberId au lieu de l'ID Airtable
+    setFormData(prev => ({ ...prev, subscriberId: subscriberDisplayName }));
     setShowSubscriberDropdown(false);
     if (errors.subscriberId) {
       setErrors(prev => ({ ...prev, subscriberId: '' }));
@@ -145,10 +146,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
   const handleSubscriberSearchChange = (value: string) => {
     setSubscriberSearch(value);
     setShowSubscriberDropdown(subscribers.length > 0); // Seulement si on a des abonnés
-    // Réinitialiser la sélection si l'utilisateur tape
-    if (formData.subscriberId) {
-      setFormData(prev => ({ ...prev, subscriberId: '' }));
-    }
+    // Mettre à jour subscriberId avec la valeur tapée
+    setFormData(prev => ({ ...prev, subscriberId: value }));
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -363,6 +362,15 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                           Aucun abonné trouvé pour "{subscriberSearch}"
                         </div>
                       )}
+                    </div>
+                  )}
+                  
+                  {/* Affichage du client sélectionné */}
+                  {subscriberSearch && (
+                    <div className="mt-2 bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm text-green-800">
+                        ✅ <strong>Client sélectionné :</strong> {subscriberSearch}
+                      </p>
                     </div>
                   )}
                   
