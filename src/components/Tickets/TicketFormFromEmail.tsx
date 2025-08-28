@@ -646,7 +646,7 @@ ${email.body || email.snippet}`;
                               type="email"
                               value={manualEmail}
                               onChange={(e) => setManualEmail(e.target.value)}
-                              placeholder="adresse@email.com"
+                              placeholder={`Réponse à votre ticket #${ticket?.ticketNumber || 'XXXX'} - ${ticket?.title || 'Votre demande'}`}
                               className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
                                 errors.subscriberId ? 'border-red-500' : 'border-gray-300'
                               }`}
