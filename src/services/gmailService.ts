@@ -372,14 +372,14 @@ class GmailService {
       const emailContent = [
         `To: ${to}`,
         `Subject: ${subject}`,
-        `Content-Type: text/plain; charset=utf-8`,
+        `Content-Type: text/plain; charset=UTF-8`,
+        `Content-Transfer-Encoding: 8bit`,
         '',
         body,
       ].join('\n');
 
-      // Encoder correctement en UTF-8 puis en base64url (format requis par Gmail)
-      const utf8Bytes = new TextEncoder().encode(emailContent);
-      const base64String = btoa(String.fromCharCode(...utf8Bytes))
+      // Encoder en base64url sans passer par UTF-8 bytes pour éviter les problèmes d'encodage
+      const base64String = btoa(unescape(encodeURIComponent(emailContent)))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');

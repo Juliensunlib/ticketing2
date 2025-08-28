@@ -120,7 +120,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
         return;
       }
 
-      const subject = emailSubject || `Réponse à votre ticket #${currentTicket.id} - ${currentTicket.title}`;
+      const subject = emailSubject || `Réponse à votre ticket #${currentTicket.ticketNumber} - ${currentTicket.title}`;
       const emailBody = `Bonjour,
 
 Suite à votre demande concernant le ticket #${currentTicket.ticketNumber}, voici notre réponse :
@@ -128,7 +128,10 @@ Suite à votre demande concernant le ticket #${currentTicket.ticketNumber}, voic
 ${newComment}
 
 Cordialement,
-L'équipe SunLib`;
+L'équipe SunLib
+
+📞 Téléphone : 04.65.84.27.63
+📧 Email : abonne@sunlib.fr`;
 
       console.log('📧 Envoi email vers:', finalEmail);
       console.log('📧 Sujet:', subject);
