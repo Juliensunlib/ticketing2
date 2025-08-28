@@ -375,12 +375,6 @@ class GmailService {
         `Content-Type: text/plain; charset=utf-8`,
         '',
         body,
-        '',
-        '---',
-        'L\'équipe SunLib',
-        '',
-        '📞 Téléphone : 04.65.84.27.63',
-        '📧 Email : abonne@sunlib.fr'
       ].join('\n');
 
       // Encoder correctement en UTF-8 puis en base64url (format requis par Gmail)
