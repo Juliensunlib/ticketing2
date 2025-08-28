@@ -179,6 +179,9 @@ ${email.body || email.snippet}`;
             `${manualSubscriberName} <${manualEmail}>` : 
             manualEmail;
           ticketData.subscriberId = displayName;
+        } else if (subscriberType === 'airtable') {
+          // Pour les clients Airtable, utiliser le nom complet affiché
+          ticketData.subscriberId = subscriberSearch || formData.subscriberId;
         }
         
         console.log('🎫 Création du ticket avec les données:', ticketData);
@@ -244,9 +247,10 @@ ${email.body || email.snippet}`;
   });
 
   const handleSubscriberSelect = (subscriber: any) => {
-    setFormData(prev => ({ ...prev, subscriberId: subscriber.id }));
     const subscriberDisplayName = `${subscriber.prenom} ${subscriber.nom} - ${subscriber.contratAbonne}`;
     setSubscriberSearch(subscriberDisplayName);
+    // Stocker le nom complet dans formData.subscriberId au lieu de l'ID Airtable
+    setFormData(prev => ({ ...prev, subscriberId: subscriberDisplayName }));
     setShowSubscriberDropdown(false);
     if (errors.subscriberId) {
       setErrors(prev => ({ ...prev, subscriberId: '' }));
@@ -256,10 +260,8 @@ ${email.body || email.snippet}`;
   const handleSubscriberSearchChange = (value: string) => {
     setSubscriberSearch(value);
     setShowSubscriberDropdown(subscribers.length > 0);
-    // Réinitialiser la sélection si l'utilisateur tape
-    if (formData.subscriberId) {
-      setFormData(prev => ({ ...prev, subscriberId: '' }));
-    }
+    // Mettre à jour subscriberId avec la valeur tapée
+    setFormData(prev => ({ ...prev, subscriberId: value }));
   };
 
   const handleSubscriberTypeChange = (type: 'airtable' | 'email') => {
@@ -609,6 +611,15 @@ ${email.body || email.snippet}`;
                             </div>
                           )}
                         </div>
+                        
+                        {/* Affichage du client sélectionné */}
+                        {subscriberSearch && subscriberType === 'airtable' && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <p className="text-sm text-green-800">
+                              ✅ <strong>Client sélectionné :</strong> {subscriberSearch}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                     
