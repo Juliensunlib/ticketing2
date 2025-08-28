@@ -130,7 +130,10 @@ ${newComment}
 Si vous avez d'autres questions, n'hésitez pas à nous recontacter.
 
 Cordialement,
-L'équipe SunLib`;
+L'équipe SunLib
+
+📞 Téléphone : 04.65.84.27.63
+📧 Email : abonne@sunlib.fr`;
 
       console.log('📧 Envoi email vers:', finalEmail);
       console.log('📧 Sujet:', subject);
