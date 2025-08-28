@@ -612,7 +612,7 @@ const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onCreateTicketFromE
                         <div className="flex items-center mt-1">
                           <FileText className="w-3 h-3 text-green-600 mr-1" />
                           <span className="text-xs text-green-600 font-medium">
-                            Ticket #{associatedTicket.id}
+                            Ticket #{associatedTicket.ticketNumber}
                           </span>
                         </div>
                       )}
@@ -665,7 +665,7 @@ const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onCreateTicketFromE
                         {associatedTicket ? (
                           <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded flex items-center">
                             <FileText className="w-3 h-3 mr-1" />
-                            Ticket #{associatedTicket.id}
+                            Ticket #{associatedTicket.ticketNumber}
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
@@ -707,7 +707,7 @@ const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onCreateTicketFromE
                       <div className="flex items-center">
                         <FileText className="w-4 h-4 text-green-600 mr-2" />
                         <span className="text-sm font-medium text-green-900">
-                          Ticket associé : #{associatedTicket.id}
+                          Ticket associé : #{associatedTicket.ticketNumber}
                         </span>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
