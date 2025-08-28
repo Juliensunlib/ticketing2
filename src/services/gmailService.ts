@@ -337,19 +337,21 @@ class GmailService {
         `Subject: Re: ${subject.replace(/^Re:\s*/i, '')}`,
         `In-Reply-To: ${originalMessageId}`,
         `References: ${originalMessageId}`,
+        `Content-Type: text/plain; charset=utf-8`,
         '',
         body
       ].join('\n');
 
-      // Encoder en base64
-      const encodedMessage = btoa(unescape(encodeURIComponent(emailContent)))
+      // Encoder correctement en UTF-8 puis en base64url
+      const utf8Bytes = new TextEncoder().encode(emailContent);
+      const base64String = btoa(String.fromCharCode(...utf8Bytes))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
 
       // Envoyer l'email
       await this.makeGmailRequest('messages/send', 'POST', {
-        raw: encodedMessage,
+        raw: base64String,
         threadId: originalMessage.threadId
       });
 
@@ -375,8 +377,9 @@ class GmailService {
         body
       ].join('\n');
 
-      // Encoder en base64url (format requis par Gmail)
-      const encodedMessage = btoa(unescape(encodeURIComponent(emailContent)))
+      // Encoder correctement en UTF-8 puis en base64url (format requis par Gmail)
+      const utf8Bytes = new TextEncoder().encode(emailContent);
+      const base64String = btoa(String.fromCharCode(...utf8Bytes))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
@@ -385,7 +388,7 @@ class GmailService {
       
       // Envoyer l'email
       const response = await this.makeGmailRequest('messages/send', 'POST', {
-        raw: encodedMessage
+        raw: base64String
       });
 
       console.log('✅ Email envoyé avec succès:', response);
