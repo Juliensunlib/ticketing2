@@ -389,11 +389,11 @@ L'équipe SunLib`;
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" />
-                    Créé le {new Date(currentTicket.createdAt).toLocaleDateString('fr-FR')}
+                    Créé le {new Date(currentTicket.createdAt).toLocaleDateString('fr-FR')} à {new Date(currentTicket.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
-                    Mis à jour le {new Date(currentTicket.updatedAt).toLocaleDateString('fr-FR')}
+                    Mis à jour le {new Date(currentTicket.updatedAt).toLocaleDateString('fr-FR')} à {new Date(currentTicket.updatedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
               </div>
