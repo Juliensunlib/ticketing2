@@ -368,10 +368,15 @@ class GmailService {
       console.log('📧 Destinataire:', to);
       console.log('📧 Sujet:', subject);
       
+      // Encoder l'objet en UTF-8 avec MIME encoding pour les caractères spéciaux
+      const encodedSubject = /[^\x00-\x7F]/.test(subject) 
+        ? `=?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`
+        : subject;
+      
       // Construire l'email
       const emailContent = [
         `To: ${to}`,
-        `Subject: ${subject}`,
+        `Subject: ${encodedSubject}`,
         `Content-Type: text/plain; charset=UTF-8`,
         `Content-Transfer-Encoding: 8bit`,
         '',
