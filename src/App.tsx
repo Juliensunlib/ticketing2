@@ -12,6 +12,7 @@ import TicketFormFromEmail from './components/Tickets/TicketFormFromEmail';
 import Settings from './components/Settings/Settings';
 import AdvancedAnalytics from './components/Analytics/AdvancedAnalytics';
 import { Ticket } from './types';
+import { useTickets } from './hooks/useTickets';
 
 interface Email {
   id: string;
@@ -26,6 +27,7 @@ interface Email {
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const { tickets } = useTickets();
   const [activeView, setActiveView] = useState('dashboard');
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [showEmailTicketForm, setShowEmailTicketForm] = useState(false);
@@ -88,6 +90,16 @@ const AppContent: React.FC = () => {
     console.log('Ticket créé depuis email avec succès !');
   };
 
+  const handleViewTicketFromNotification = (ticketId: string) => {
+    // Trouver le ticket par son ID
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (ticket) {
+      setSelectedTicket(ticket);
+      // Optionnel : changer la vue vers les tickets
+      setActiveView('tickets');
+    }
+  };
+
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
@@ -124,7 +136,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header onViewTicket={handleViewTicketFromNotification} />
       <div className="flex">
         <Sidebar activeView={activeView} onViewChange={handleViewChange} />
         <main className="flex-1">
