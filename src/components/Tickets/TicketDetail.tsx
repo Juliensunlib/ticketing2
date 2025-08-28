@@ -116,8 +116,6 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
       const subject = emailSubject || `Réponse à votre ticket #${currentTicket.ticketNumber} - ${currentTicket.title}`;
       const emailBody = `Bonjour,
 
-Suite à votre demande concernant le ticket #${currentTicket.ticketNumber}, voici notre réponse :
-
 ${newComment}
 
 Cordialement,
