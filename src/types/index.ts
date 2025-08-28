@@ -1,5 +1,6 @@
 export interface Ticket {
   id: string;
+  ticketNumber: number;
   title: string;
   description: string;
   priority: 'Haute' | 'Moyenne' | 'Basse';

@@ -123,19 +123,14 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
       const subject = emailSubject || `Réponse à votre ticket #${currentTicket.id} - ${currentTicket.title}`;
       const emailBody = `Bonjour,
 
-Suite à votre demande concernant le ticket #${currentTicket.id}, voici notre réponse :
+Suite à votre demande concernant le ticket #${currentTicket.ticketNumber}, voici notre réponse :
 
 ${newComment}
 
 Si vous avez d'autres questions, n'hésitez pas à nous recontacter.
 
 Cordialement,
-L'équipe SunLib
-
----
-Ticket #${currentTicket.id} - ${currentTicket.title}
-Statut: ${currentTicket.status}
-Priorité: ${currentTicket.priority}`;
+L'équipe SunLib`;
 
       console.log('📧 Envoi email vers:', finalEmail);
       console.log('📧 Sujet:', subject);
@@ -339,7 +334,7 @@ Priorité: ${currentTicket.priority}`;
                 <div className="flex items-center space-x-3 mb-2">
                   <TypeIcon className="w-5 h-5 text-orange-500" />
                   <h1 className="text-xl font-semibold text-gray-900">
-                    {currentTicket.subscriberId} - Ticket #{currentTicket.id}
+                    {currentTicket.subscriberId} - Ticket #{currentTicket.ticketNumber}
                   </h1>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(currentTicket.priority)}`}>
                     {currentTicket.priority}

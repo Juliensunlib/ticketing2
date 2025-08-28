@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export interface SupabaseTicket {
   id: string;
+  ticket_number: number;
   title: string;
   description: string;
   priority: 'Haute' | 'Moyenne' | 'Basse';

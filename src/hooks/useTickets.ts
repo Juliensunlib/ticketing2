@@ -8,6 +8,7 @@ import { Ticket } from '../types';
 const convertSupabaseTicketToTicket = (supabaseTicket: any, subscribers: any[] = []): Ticket => {
   return {
     id: supabaseTicket.id,
+    ticketNumber: supabaseTicket.ticket_number,
     title: supabaseTicket.title,
     description: supabaseTicket.description,
     priority: supabaseTicket.priority,
