@@ -127,8 +127,6 @@ Suite à votre demande concernant le ticket #${currentTicket.ticketNumber}, voic
 
 ${newComment}
 
-Si vous avez d'autres questions, n'hésitez pas à nous recontacter.
-
 Cordialement,
 L'équipe SunLib
 
