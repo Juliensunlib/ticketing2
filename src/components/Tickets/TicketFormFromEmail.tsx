@@ -79,7 +79,7 @@ const TicketFormFromEmail: React.FC<TicketFormFromEmailProps> = ({ email, onClos
         setSubscriberType('airtable');
         const subscriberDisplayName = `${foundSubscriber.prenom} ${foundSubscriber.nom} - ${foundSubscriber.contratAbonne}`;
         setSubscriberSearch(subscriberDisplayName);
-        setFormData(prev => ({ ...prev, subscriberId: foundSubscriber.id }));
+        setFormData(prev => ({ ...prev, subscriberId: subscriberDisplayName }));
       } else {
         console.log('ℹ️ Abonné non trouvé dans Airtable, utilisation de l\'email');
         setSubscriberType('email');
@@ -180,7 +180,7 @@ ${email.body || email.snippet}`;
             manualEmail;
           ticketData.subscriberId = displayName;
         } else if (subscriberType === 'airtable') {
-          // Pour les clients Airtable, utiliser le nom complet affiché
+          // Pour les clients Airtable, s'assurer qu'on utilise le nom complet formaté
           ticketData.subscriberId = subscriberSearch || formData.subscriberId;
         }
         
@@ -680,6 +680,9 @@ ${email.body || email.snippet}`;
                               className="text-sm text-blue-600 hover:text-blue-700 underline"
                             >
                               Rechercher "{manualEmail}" dans la base Airtable
+                              <div className="text-xs text-gray-500 mt-1">
+                                ID: {subscriber.id}
+                              </div>
                             </button>
                           </div>
                         )}

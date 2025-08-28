@@ -268,12 +268,21 @@ L'équipe SunLib
 
   // Trouver l'abonné correspondant dans Airtable SEULEMENT si c'est un client Airtable
   const subscriber = React.useMemo(() => {
-    if (!currentTicket.subscriberId || !isAirtableClient(currentTicket.subscriberId)) {
+    console.log('🔍 === RECHERCHE ABONNÉ DANS TICKET DETAIL ===');
+    console.log('🔍 SubscriberId du ticket:', currentTicket.subscriberId);
+    console.log('🔍 Est un client Airtable?', isAirtableClient(currentTicket.subscriberId || ''));
+    
+    if (!currentTicket.subscriberId) {
+      console.log('❌ Pas de subscriberId');
+      return null;
+    }
+    
+    // Si ce n'est pas un client Airtable (pas de format SL-XXXXXX), pas besoin de chercher
+    if (!isAirtableClient(currentTicket.subscriberId)) {
+      console.log('ℹ️ Pas un client Airtable, pas de recherche nécessaire');
       return null;
     }
 
-    console.log('🔍 === RECHERCHE ABONNÉ DÉTAILLÉE ===');
-    console.log('🔍 SubscriberId du ticket:', currentTicket.subscriberId);
     console.log('🔍 Nombre d\'abonnés disponibles:', subscribers.length);
 
     // Extraire le contrat du subscriberId (format: "Prénom Nom - SL-123456")
@@ -287,6 +296,7 @@ L'équipe SunLib
         console.log('✅ Abonné trouvé par contrat:', foundByContract);
         return foundByContract;
       }
+      console.log('❌ Aucun abonné trouvé avec le contrat:', contractNumber);
     }
 
     // Si pas trouvé par contrat, essayer par nom/prénom
@@ -306,6 +316,7 @@ L'équipe SunLib
         console.log('✅ Abonné trouvé par nom:', foundByName);
         return foundByName;
       }
+      console.log('❌ Aucun abonné trouvé avec le nom:', fullName);
     }
 
     console.log('❌ Aucun abonné trouvé');
