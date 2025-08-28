@@ -13,6 +13,7 @@ import Settings from './components/Settings/Settings';
 import AdvancedAnalytics from './components/Analytics/AdvancedAnalytics';
 import { Ticket } from './types';
 import { useTickets } from './hooks/useTickets';
+import { useSupabaseUsers } from './hooks/useSupabaseUsers';
 
 interface Email {
   id: string;
@@ -27,6 +28,7 @@ interface Email {
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const { users } = useSupabaseUsers();
   const { tickets } = useTickets();
   const [activeView, setActiveView] = useState('dashboard');
   const [showTicketForm, setShowTicketForm] = useState(false);
@@ -35,7 +37,17 @@ const AppContent: React.FC = () => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
 
+  // Trouver l'utilisateur actuel pour vérifier ses permissions
+  const currentUser = users.find(u => u.email === user?.email);
+  const isAdmin = currentUser?.user_group === 'admin';
+
   const handleViewChange = (view: string) => {
+    // Vérifier les permissions pour l'accès aux paramètres
+    if (view === 'settings' && !isAdmin) {
+      alert('Accès refusé : Seuls les administrateurs peuvent accéder aux paramètres.');
+      return;
+    }
+    
     setActiveView(view);
     if (view === 'create') {
       setShowTicketForm(true);
@@ -109,6 +121,22 @@ const AppContent: React.FC = () => {
       case 'emails':
         return <GmailIntegration onCreateTicketFromEmail={handleCreateTicketFromEmail} />;
       case 'settings':
+        // Double vérification côté rendu pour la sécurité
+        if (!isAdmin) {
+          return (
+            <div className="p-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                <h2 className="text-lg font-semibold text-red-900 mb-2">Accès refusé</h2>
+                <p className="text-red-700">
+                  Seuls les administrateurs peuvent accéder aux paramètres.
+                </p>
+                <p className="text-sm text-red-600 mt-2">
+                  Votre rôle actuel : {currentUser?.user_group || 'Non défini'}
+                </p>
+              </div>
+            </div>
+          );
+        }
         return <Settings />;
       case 'analytics':
         return (

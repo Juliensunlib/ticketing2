@@ -1,5 +1,7 @@
 import React from 'react';
 import { Home, Plus, Users, Settings, BarChart3, FileText, Mail } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 
 interface SidebarProps {
   activeView: string;
@@ -7,13 +9,20 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+  const { user } = useAuth();
+  const { users } = useSupabaseUsers();
+  
+  // Trouver l'utilisateur actuel dans la liste des utilisateurs pour vérifier son rôle
+  const currentUser = users.find(u => u.email === user?.email);
+  const isAdmin = currentUser?.user_group === 'admin';
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'create', label: 'Nouveau Ticket', icon: Plus },
     { id: 'tickets', label: 'Tous les Tickets', icon: FileText },
     { id: 'emails', label: 'Emails Abonnés', icon: Mail },
     { id: 'analytics', label: 'Statistiques', icon: BarChart3 },
-    { id: 'settings', label: 'Paramètres', icon: Settings },
+    ...(isAdmin ? [{ id: 'settings', label: 'Paramètres', icon: Settings }] : []),
   ];
 
   return (
