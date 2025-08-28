@@ -167,6 +167,7 @@ L'équipe SunLib
     console.log('🔍 === DÉTECTION EMAIL AUTOMATIQUE ===');
     console.log('🔍 Abonné recherché:', currentTicket.subscriberId);
     console.log('🔍 Nombre d\'abonnés Airtable disponibles:', subscribers.length);
+    console.log('🔍 Abonné trouvé via matching:', subscriber);
     
     // 1. D'abord, chercher un email directement dans le subscriberId (format "Nom <email@domain.com>")
     const emailInSubscriberIdMatch = currentTicket.subscriberId?.match(/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/);
@@ -185,20 +186,7 @@ L'équipe SunLib
     console.log('❌ Pas d\'email trouvé au format simple');
     
     // 3. Si toujours pas trouvé, chercher dans les abonnés Airtable
-    console.log('🔍 Recherche dans Airtable...');
-    console.log('🔍 Abonnés disponibles:', subscribers.map(s => ({ 
-      nom: s.nom, 
-      prenom: s.prenom, 
-      contrat: s.contratAbonne, 
-      email: s.email 
-    })));
-    
-    const subscriber = subscribers.find(sub => 
-      currentTicket.subscriberId?.includes(sub.contratAbonne) || 
-      currentTicket.subscriberId?.includes(`${sub.prenom} ${sub.nom}`) ||
-      currentTicket.subscriberId?.includes(sub.nom) ||
-      currentTicket.subscriberId?.includes(sub.prenom)
-    );
+    console.log('🔍 Recherche dans Airtable avec abonné matché...');
     
     if (subscriber?.email) {
       console.log('✅ Email trouvé dans Airtable:', subscriber.email);
@@ -209,7 +197,22 @@ L'équipe SunLib
     if (subscriber) {
       console.log('⚠️ Abonné trouvé mais sans email:', subscriber);
     } else {
-      console.log('❌ Aucun abonné correspondant trouvé');
+      console.log('❌ Aucun abonné correspondant trouvé via matching');
+      
+      // Recherche de fallback plus large
+      console.log('🔍 Recherche de fallback...');
+      const fallbackSubscriber = subscribers.find(sub => 
+        currentTicket.subscriberId?.includes(sub.contratAbonne) || 
+        currentTicket.subscriberId?.includes(`${sub.prenom} ${sub.nom}`) ||
+        currentTicket.subscriberId?.includes(`${sub.nom} ${sub.prenom}`) ||
+        currentTicket.subscriberId?.includes(sub.nom) ||
+        currentTicket.subscriberId?.includes(sub.prenom)
+      );
+      
+      if (fallbackSubscriber?.email) {
+        console.log('✅ Email trouvé via fallback:', fallbackSubscriber.email);
+        return fallbackSubscriber.email;
+      }
     }
     
     console.log('❌ Aucun email trouvé pour:', currentTicket.subscriberId);
@@ -275,10 +278,51 @@ L'équipe SunLib
   // Trouver l'abonné correspondant dans Airtable SEULEMENT si c'est un client Airtable
   const subscriber = currentTicket.subscriberId && isAirtableClient(currentTicket.subscriberId) 
     ? subscribers.find(sub => 
-        currentTicket.subscriberId.includes(sub.contratAbonne) || 
-        currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`)
+        currentTicket.subscriberId.includes(sub.contratAbonne) ||
+        currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`) ||
+        currentTicket.subscriberId.includes(`${sub.nom} ${sub.prenom}`) ||
+        // Recherche plus flexible par nom/prénom
+        (sub.nom && sub.prenom && 
+         (currentTicket.subscriberId.toLowerCase().includes(sub.nom.toLowerCase()) &&
+          currentTicket.subscriberId.toLowerCase().includes(sub.prenom.toLowerCase())))
       )
     : null;
+
+  // Debug pour voir la correspondance
+  React.useEffect(() => {
+    if (currentTicket.subscriberId && isAirtableClient(currentTicket.subscriberId)) {
+      console.log('🔍 === DEBUG CORRESPONDANCE CLIENT ===');
+      console.log('🔍 SubscriberId du ticket:', currentTicket.subscriberId);
+      console.log('🔍 Nombre d\'abonnés Airtable:', subscribers.length);
+      
+      if (subscribers.length > 0) {
+        console.log('🔍 Recherche de correspondance...');
+        const foundSubscriber = subscribers.find(sub => {
+          const matches = [
+            currentTicket.subscriberId.includes(sub.contratAbonne),
+            currentTicket.subscriberId.includes(`${sub.prenom} ${sub.nom}`),
+            currentTicket.subscriberId.includes(`${sub.nom} ${sub.prenom}`),
+            (sub.nom && sub.prenom && 
+             currentTicket.subscriberId.toLowerCase().includes(sub.nom.toLowerCase()) &&
+             currentTicket.subscriberId.toLowerCase().includes(sub.prenom.toLowerCase()))
+          ];
+          
+          console.log(`🔍 Test ${sub.prenom} ${sub.nom} (${sub.contratAbonne}):`, matches);
+          return matches.some(match => match);
+        });
+        
+        if (foundSubscriber) {
+          console.log('✅ Abonné trouvé:', foundSubscriber);
+        } else {
+          console.log('❌ Aucun abonné trouvé');
+          console.log('🔍 Premiers abonnés disponibles:', subscribers.slice(0, 3).map(s => 
+            `${s.prenom} ${s.nom} - ${s.contratAbonne}`
+          ));
+        }
+      }
+      console.log('🔍 === FIN DEBUG ===');
+    }
+  }, [currentTicket.subscriberId, subscribers]);
 
   // Fonction pour détecter si le ticket vient d'un email
   const isFromEmail = () => {
