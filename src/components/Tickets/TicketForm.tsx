@@ -85,7 +85,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
       // Préparer les données avec le nom de l'abonné
       const ticketDataWithSubscriberName = {
         ...formData,
-        subscriberId: subscriberSearch // Utilise le nom complet affiché
+        subscriberId: subscriberSearch, // Utilise le nom complet affiché
+        subscriber_name: subscriberSearch // Ajouter aussi le champ subscriber_name pour Supabase
       };
       
       // Supprimer les pièces jointes des données de mise à jour pour éviter les erreurs
@@ -93,6 +94,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
       
       if (ticket) {
         // Mode édition
+        console.log('🔍 Mise à jour du ticket avec nouvel abonné:', subscriberSearch);
         updateTicket(ticket.id, ticketDataForUpdate);
       } else {
         // Mode création

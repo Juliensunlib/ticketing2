@@ -122,6 +122,7 @@ export const useTickets = () => {
         channel: updates.channel,
         assigned_to: updates.assignedTo === '' ? null : updates.assignedTo,
         subscriber_id: updates.subscriberId,
+        subscriber_name: updates.subscriberId, // Mettre à jour aussi le nom affiché
         installer_id: updates.installerId
       };
     }

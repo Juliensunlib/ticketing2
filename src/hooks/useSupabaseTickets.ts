@@ -211,13 +211,14 @@ export const useSupabaseTickets = () => {
       console.log('✅ Ticket existant trouvé:', existingTicket);
       console.log('🔍 Statut actuel:', existingTicket.status);
       console.log('🔍 Nouveau statut:', updates.status);
+      console.log('🔍 Nouvel abonné:', updates.subscriber_name);
 
       // Effectuer la mise à jour
       const { data, error: updateError } = await supabase
         .from('tickets')
         .update(updates)
         .eq('id', ticketId)
-        .select('id, status, priority, assigned_to')
+        .select('id, status, priority, assigned_to, subscriber_name')
         .single();
 
       if (updateError) {
@@ -230,6 +231,7 @@ export const useSupabaseTickets = () => {
 
       console.log('✅ Ticket mis à jour avec succès:', data);
       console.log('✅ Nouveau statut confirmé:', data.status);
+      console.log('✅ Nouvel abonné confirmé:', data.subscriber_name);
       
       // Recharger les données après mise à jour
       await loadTickets();
