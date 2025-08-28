@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, BarChart3, TrendingUp, Clock, Filter, Download } from 'lucide-react';
 import { useTickets } from '../../hooks/useTickets';
+import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { 
   LineChart, 
   Line, 
@@ -38,6 +39,7 @@ type TimeRange = 'day' | 'week' | 'month' | 'custom';
 
 const AdvancedAnalytics: React.FC = () => {
   const { tickets } = useTickets();
+  const { users } = useSupabaseUsers();
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -279,6 +281,57 @@ const AdvancedAnalytics: React.FC = () => {
     };
   }, [tickets, selectedType]);
 
+  // Statistiques par utilisateur
+  const userStatistics = useMemo(() => {
+    const userStats = users.map(user => {
+      // Tickets créés par cet utilisateur dans la période
+      const createdTickets = tickets.filter(ticket => {
+        const ticketDate = parseISO(ticket.createdAt);
+        const matchesUser = ticket.createdBy === user.name || ticket.createdBy === user.id;
+        const isInRange = isWithinInterval(ticketDate, dateRange);
+        const matchesType = selectedType === 'all' || ticket.type === selectedType;
+        return matchesUser && isInRange && matchesType;
+      });
+
+      // Tickets assignés à cet utilisateur dans la période
+      const assignedTickets = tickets.filter(ticket => {
+        const ticketDate = parseISO(ticket.createdAt);
+        const matchesUser = ticket.assignedTo === user.id;
+        const isInRange = isWithinInterval(ticketDate, dateRange);
+        const matchesType = selectedType === 'all' || ticket.type === selectedType;
+        return matchesUser && isInRange && matchesType;
+      });
+
+      // Tickets fermés par cet utilisateur (basé sur les tickets assignés qui sont fermés)
+      const closedTickets = assignedTickets.filter(ticket => ticket.status === 'Fermé');
+
+      // Délai moyen de résolution pour cet utilisateur
+      let averageResolutionHours = 0;
+      if (closedTickets.length > 0) {
+        const totalHours = closedTickets.reduce((sum, ticket) => {
+          const created = parseISO(ticket.createdAt);
+          const closed = parseISO(ticket.updatedAt);
+          return sum + differenceInHours(closed, created);
+        }, 0);
+        averageResolutionHours = Math.round((totalHours / closedTickets.length) * 10) / 10;
+      }
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        userGroup: user.user_group,
+        createdCount: createdTickets.length,
+        assignedCount: assignedTickets.length,
+        closedCount: closedTickets.length,
+        averageResolutionHours,
+        resolutionRate: assignedTickets.length > 0 ? Math.round((closedTickets.length / assignedTickets.length) * 100) : 0
+      };
+    });
+
+    // Trier par nombre de tickets fermés (performance)
+    return userStats.sort((a, b) => b.closedCount - a.closedCount);
+  }, [users, tickets, dateRange, selectedType]);
   // Types de tickets disponibles
   const ticketTypes = [
     'SAV / question technique',
@@ -594,6 +647,179 @@ const AdvancedAnalytics: React.FC = () => {
           <div className="text-center py-8 text-gray-500">
             <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>Aucun ticket fermé dans la période sélectionnée</p>
+          </div>
+        )}
+      </div>
+
+      {/* Tableau des statistiques par utilisateur */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Statistiques par utilisateur
+        </h3>
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Utilisateur
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Rôle
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tickets créés
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tickets assignés
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tickets fermés
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Taux de résolution
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Délai moyen (h)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {userStatistics.length > 0 ? (
+                userStatistics.map((userStat) => (
+                  <tr key={userStat.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-yellow-500 flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">
+                              {userStat.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {userStat.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {userStat.email}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        userStat.userGroup === 'admin' 
+                          ? 'bg-red-100 text-red-800'
+                          : userStat.userGroup === 'service_technique'
+                          ? 'bg-purple-100 text-purple-800'
+                          : userStat.userGroup === 'commercial'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {userStat.userGroup}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <span className="font-medium">{userStat.createdCount}</span>
+                        {userStat.createdCount > 0 && (
+                          <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-orange-500 h-2 rounded-full"
+                              style={{ 
+                                width: `${Math.min((userStat.createdCount / Math.max(...userStatistics.map(u => u.createdCount))) * 100, 100)}%` 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <span className="font-medium">{userStat.assignedCount}</span>
+                        {userStat.assignedCount > 0 && (
+                          <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-500 h-2 rounded-full"
+                              style={{ 
+                                width: `${Math.min((userStat.assignedCount / Math.max(...userStatistics.map(u => u.assignedCount))) * 100, 100)}%` 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <span className="font-medium">{userStat.closedCount}</span>
+                        {userStat.closedCount > 0 && (
+                          <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full"
+                              style={{ 
+                                width: `${Math.min((userStat.closedCount / Math.max(...userStatistics.map(u => u.closedCount))) * 100, 100)}%` 
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        <span className={`font-medium ${
+                          userStat.resolutionRate >= 80 ? 'text-green-600' :
+                          userStat.resolutionRate >= 60 ? 'text-yellow-600' :
+                          'text-red-600'
+                        }`}>
+                          {userStat.resolutionRate}%
+                        </span>
+                        <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              userStat.resolutionRate >= 80 ? 'bg-green-500' :
+                              userStat.resolutionRate >= 60 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${userStat.resolutionRate}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="font-medium">
+                        {userStat.averageResolutionHours > 0 ? `${userStat.averageResolutionHours}h` : '-'}
+                      </span>
+                      {userStat.averageResolutionHours >= 24 && (
+                        <div className="text-xs text-gray-500">
+                          ({Math.round(userStat.averageResolutionHours / 24 * 10) / 10}j)
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <div className="flex flex-col items-center">
+                      <Calendar className="w-12 h-12 text-gray-300 mb-4" />
+                      <p>Aucune donnée utilisateur pour la période sélectionnée</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {userStatistics.length > 0 && (
+          <div className="mt-4 text-sm text-gray-600">
+            <p>
+              <strong>Légende :</strong> Les barres de progression permettent de comparer visuellement les performances entre utilisateurs.
+            </p>
+            <p>
+              <strong>Taux de résolution :</strong> Pourcentage de tickets assignés qui ont été fermés.
+            </p>
           </div>
         )}
       </div>
