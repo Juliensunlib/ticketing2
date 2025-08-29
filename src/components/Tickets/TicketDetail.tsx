@@ -36,38 +36,32 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
 
   const handleStatusUpdate = async () => {
     try {
-      console.log('🔍 Mise à jour avec les données:', editData);
-      console.log('🔍 ID du ticket:', ticket.id);
-      console.log('🔍 Statut actuel:', ticket.status);
-      console.log('🔍 Nouveau statut:', editData.status);
+      console.log('🔄 Sauvegarde des modifications...');
       
-      // Préparer les données de mise à jour
-      const updateData = {
+      const updateData: any = {
         status: editData.status,
         priority: editData.priority,
-        assigned_to: editData.assignedTo === '' ? null : editData.assignedTo
       };
       
-      console.log('🔍 Données à envoyer:', updateData);
+      // Gérer l'assignation (null si vide)
+      if (editData.assignedTo === '') {
+        updateData.assigned_to = null;
+      } else if (editData.assignedTo) {
+        updateData.assigned_to = editData.assignedTo;
+      }
       
-      const result = await updateTicket(ticket.id, updateData);
-      console.log('✅ Résultat de la mise à jour:', result);
+      console.log('📝 Données finales:', updateData);
       
-      // Afficher un message de succès
-      alert('Ticket mis à jour avec succès !');
+      await updateTicket(currentTicket.id, updateData);
       
+      console.log('✅ Ticket mis à jour avec succès');
       setIsEditing(false);
-      
-      // Fermer le modal et forcer le rechargement
-      onClose();
-      
-      // Attendre un peu avant de recharger pour laisser le temps à Supabase
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      alert('Ticket mis à jour avec succès !');
+
     } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      alert(`Erreur lors de la mise à jour du ticket: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+      console.error('❌ Erreur mise à jour:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      alert(`Erreur lors de la mise à jour: ${errorMessage}`);
     }
   };
 

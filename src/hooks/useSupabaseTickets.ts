@@ -192,112 +192,35 @@ export const useSupabaseTickets = () => {
 
   const updateTicket = async (ticketId: string, updates: Partial<Omit<SupabaseTicket, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
-      console.log('🔍 Mise à jour du ticket avec ID:', ticketId);
-      console.log('🔍 Données à mettre à jour:', updates);
-      console.log('🔍 Utilisateur connecté:', user?.email);
+      console.log('🔄 Mise à jour du ticket:', ticketId);
+      console.log('📝 Données à mettre à jour:', updates);
       
-      // Vérifier d'abord que le ticket existe
-      const { data: existingTicket, error: checkError } = await supabase
+      // Nettoyer les données - supprimer les valeurs undefined et null
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
+      
+      console.log('🧹 Données nettoyées:', cleanUpdates);
+      
+      const { data, error } = await supabase
         .from('tickets')
-        .select('id, title, status')
+        .update(cleanUpdates)
         .eq('id', ticketId)
-        .single();
+        .select('*');
 
-      if (checkError) {
-        console.error('❌ Erreur lors de la vérification du ticket:', checkError);
-        throw new Error(`Ticket non trouvé: ${checkError.message}`);
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw new Error(`Erreur de mise à jour: ${error.message}`);
       }
 
-      console.log('✅ Ticket existant trouvé:', existingTicket);
-      console.log('🔍 Statut actuel:', existingTicket.status);
-      console.log('🔍 Nouveau statut:', updates.status);
-      console.log('🔍 Nouvel abonné:', updates.subscriber_name);
-
-      // Effectuer la mise à jour
-      const { data, error: updateError } = await supabase
-        .from('tickets')
-        .update(updates)
-        .eq('id', ticketId)
-        .select('id, status, priority, assigned_to, subscriber_name')
-        .single();
-
-      if (updateError) {
-        console.error('❌ Erreur lors de la mise à jour:', updateError);
-        console.error('❌ Code d\'erreur:', updateError.code);
-        console.error('❌ Message:', updateError.message);
-        console.error('❌ Détails:', updateError.details);
-        throw new Error(`Erreur de mise à jour: ${updateError.message}`);
-      }
-
-      console.log('✅ Ticket mis à jour avec succès:', data);
-      console.log('✅ Nouveau statut confirmé:', data.status);
-      console.log('✅ Nouvel abonné confirmé:', data.subscriber_name);
+      console.log('✅ Mise à jour réussie');
       
-      // Recharger les données après mise à jour
+      // Recharger les tickets
       await loadTickets();
-      return data;
+      return data?.[0] || null;
       
     } catch (err) {
-      console.error('❌ Erreur lors de la mise à jour du ticket:', err);
-      throw err;
-    }
-  };
-
-  const updateTicketOld = async (ticketId: string, updates: Partial<Omit<SupabaseTicket, 'id' | 'created_at' | 'updated_at'>>) => {
-    try {
-      console.log('🔍 Mise à jour du ticket avec ID:', ticketId);
-      console.log('🔍 Données à mettre à jour:', updates);
-      
-      // Vérifier d'abord que le ticket existe
-      const { data: existingTicket, error: checkError } = await supabase
-        .from('tickets')
-        .select('id, title')
-        .eq('id', ticketId)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('❌ Erreur lors de la vérification du ticket:', checkError);
-        throw checkError;
-      }
-
-      if (!existingTicket) {
-        console.error('❌ Ticket non trouvé avec ID:', ticketId);
-        throw new Error(`Ticket avec l'ID ${ticketId} non trouvé`);
-      }
-
-      console.log('✅ Ticket trouvé:', existingTicket);
-
-      const { data, error: supabaseError } = await supabase
-        .from('tickets')
-        .update(updates)
-        .eq('id', ticketId)
-        .select('*')
-        .maybeSingle();
-
-      if (supabaseError) {
-        // Gérer spécifiquement l'erreur PGRST116 (aucune ligne retournée après mise à jour)
-        if (supabaseError.code === 'PGRST116' && supabaseError.details === 'The result contains 0 rows') {
-          console.log('✅ Mise à jour effectuée mais aucune donnée retournée (probablement due aux politiques RLS)');
-          await loadTickets(); // Recharger la liste
-          return null;
-        }
-        
-        console.error('❌ Erreur Supabase lors de la mise à jour:', supabaseError);
-        throw supabaseError;
-      }
-
-      if (data) {
-        console.log('✅ Ticket mis à jour avec succès:', data.id);
-      } else {
-        console.log('✅ Ticket mis à jour (aucune donnée retournée)');
-      }
-
-      // TODO: Synchroniser les modifications avec Airtable si nécessaire
-      
-      await loadTickets(); // Recharger la liste
-      return data;
-    } catch (err) {
-      console.error('❌ Erreur lors de la mise à jour du ticket:', err);
+      console.error('❌ Erreur mise à jour:', err);
       throw err;
     }
   };

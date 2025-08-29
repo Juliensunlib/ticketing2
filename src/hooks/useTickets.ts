@@ -102,39 +102,35 @@ export const useTickets = () => {
   };
 
   const updateTicket = (ticketId: string, updates: Partial<Ticket>) => {
-    console.log('🔍 useTickets.updateTicket - ID:', ticketId);
-    console.log('🔍 useTickets.updateTicket - Updates:', updates);
+    console.log('🔄 Mise à jour ticket:', ticketId);
+    console.log('📝 Changements:', updates);
     
-    // Si les updates contiennent déjà les noms de colonnes Supabase, les utiliser directement
-    let supabaseUpdates;
-    if ('assigned_to' in updates || 'subscriber_id' in updates) {
-      // Données déjà au format Supabase
-      supabaseUpdates = updates;
-    } else {
-      // Conversion du format interface vers Supabase
-      supabaseUpdates = {
-        title: updates.title,
-        description: updates.description,
-        priority: updates.priority,
-        status: updates.status,
-        type: updates.type,
-        origin: updates.origin,
-        channel: updates.channel,
-        assigned_to: updates.assignedTo === '' ? null : updates.assignedTo,
-        subscriber_id: updates.subscriberId,
-        subscriber_name: updates.subscriberId, // Mettre à jour aussi le nom affiché
-        installer_id: updates.installerId
-      };
+    // Conversion simple et directe vers le format Supabase
+    const supabaseUpdates: any = {};
+    
+    if (updates.title !== undefined) supabaseUpdates.title = updates.title;
+    if (updates.description !== undefined) supabaseUpdates.description = updates.description;
+    if (updates.priority !== undefined) supabaseUpdates.priority = updates.priority;
+    if (updates.status !== undefined) supabaseUpdates.status = updates.status;
+    if (updates.type !== undefined) supabaseUpdates.type = updates.type;
+    if (updates.origin !== undefined) supabaseUpdates.origin = updates.origin;
+    if (updates.channel !== undefined) supabaseUpdates.channel = updates.channel;
+    if (updates.assignedTo !== undefined) {
+      supabaseUpdates.assigned_to = updates.assignedTo === '' ? null : updates.assignedTo;
     }
-
-    // Supprimer les propriétés undefined
-    Object.keys(supabaseUpdates).forEach(key => {
-      if (supabaseUpdates[key as keyof typeof supabaseUpdates] === undefined) {
-        delete supabaseUpdates[key as keyof typeof supabaseUpdates];
-      }
-    });
-
-    console.log('🔍 useTickets.updateTicket - Données Supabase:', supabaseUpdates);
+    if (updates.subscriberId !== undefined) {
+      supabaseUpdates.subscriber_id = updates.subscriberId;
+      supabaseUpdates.subscriber_name = updates.subscriberId;
+    }
+    if (updates.installerId !== undefined) {
+      supabaseUpdates.installer_id = updates.installerId;
+    }
+    
+    // Gérer les updates qui arrivent déjà au format Supabase
+    if ('assigned_to' in updates) supabaseUpdates.assigned_to = updates.assigned_to;
+    if ('subscriber_name' in updates) supabaseUpdates.subscriber_name = updates.subscriber_name;
+    
+    console.log('🔧 Données converties:', supabaseUpdates);
     return updateSupabaseTicket(ticketId, supabaseUpdates);
   };
 

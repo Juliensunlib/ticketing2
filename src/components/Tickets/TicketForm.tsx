@@ -82,35 +82,31 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
 
     // Créer le ticket
     try {
-      // Préparer les données avec le nom de l'abonné
-      const ticketDataWithSubscriberName = {
+      console.log('💾 Sauvegarde du ticket...');
+      
+      const ticketData = {
         ...formData,
-        subscriberId: subscriberSearch || formData.subscriberId, // Utilise le nom complet affiché
-        subscriber_name: subscriberSearch || formData.subscriberId // Ajouter aussi le champ subscriber_name pour Supabase
+        subscriberId: subscriberSearch || formData.subscriberId,
       };
       
-      // Supprimer les pièces jointes des données de mise à jour pour éviter les erreurs
-      const { attachments: _, ...ticketDataForUpdate } = ticketDataWithSubscriberName as any;
+      console.log('📝 Données du ticket:', ticketData);
       
       if (ticket) {
-        // Mode édition
-        console.log('🔍 Mise à jour du ticket avec nouvel abonné:', subscriberSearch);
-        updateTicket(ticket.id, ticketDataForUpdate);
+        console.log('✏️ Mode édition');
+        await updateTicket(ticket.id, ticketData);
       } else {
-        // Mode création
-        createTicket(ticketDataForUpdate);
-        
-        // TODO: Gérer l'upload des pièces jointes après création du ticket
-        if (attachments.length > 0) {
-          console.log('Pièces jointes à traiter:', attachments);
-        }
+        console.log('➕ Mode création');
+        await createTicket(ticketData);
       }
       
+      console.log('✅ Opération réussie');
       onSuccess();
       onClose();
+      
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde du ticket:', error);
-      setErrors({ general: 'Erreur lors de la sauvegarde du ticket' });
+      console.error('❌ Erreur sauvegarde:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      setErrors({ general: `Erreur: ${errorMessage}` });
     }
   };
 
