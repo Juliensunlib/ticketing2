@@ -4,7 +4,7 @@ export interface Ticket {
   title: string;
   description: string;
   priority: 'Haute' | 'Moyenne' | 'Basse';
-  status: 'Nouveau' | 'En attente du client' | 'En attente de l\'installateur' | 'En attente retour service technique' | 'Fermé' | 'Ouvert';
+  status: 'Nouveau' | 'En attente du client' | 'En attente de l\'installateur' | 'En attente retour service technique' | 'Fermé' | 'En cours Service Client';
   type: 'SAV / question technique' | 'Recouvrement' | 'Plainte Installateur' | 'changement date prélèvement/RIB' | 'Résiliation anticipée / cession de contrat' | 'Ajout contrat / Flexibilité';
   origin: 'Installateur' | 'SunLib' | 'Abonné';
   channel: 'Mail' | 'Téléphone' | 'Formulaire de contact' | 'Site abonné' | 'Application SunLib';

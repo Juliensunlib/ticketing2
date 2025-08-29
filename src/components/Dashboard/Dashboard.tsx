@@ -12,7 +12,7 @@ const Dashboard: React.FC = () => {
   const attenteInstallateurTickets = tickets.filter(t => t.status === 'En attente de l\'installateur').length;
   const attenteServiceTickets = tickets.filter(t => t.status === 'En attente retour service technique').length;
   const fermeTickets = tickets.filter(t => t.status === 'Fermé').length;
-  const ouvertTickets = tickets.filter(t => t.status === 'Ouvert').length;
+  const enCoursServiceClientTickets = tickets.filter(t => t.status === 'En cours Service Client').length;
 
   const recentTickets = tickets
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Ouvert': return 'text-green-600 bg-green-100';
+      case 'En cours Service Client': return 'text-green-600 bg-green-100';
       case 'En cours': return 'text-blue-600 bg-blue-100';
       case 'Résolu': return 'text-orange-600 bg-orange-100';
       case 'Fermé': return 'text-gray-600 bg-gray-100';
@@ -77,8 +77,8 @@ const Dashboard: React.FC = () => {
           color="red"
         />
         <StatsCard
-          title="Ouvert"
-          value={ouvertTickets}
+          title="En cours Service Client"
+          value={enCoursServiceClientTickets}
           icon={CheckCircle}
           color="green"
         />
