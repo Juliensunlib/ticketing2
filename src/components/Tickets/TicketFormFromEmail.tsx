@@ -485,7 +485,7 @@ ${email.body || email.snippet}`;
                         <option value="En attente de l'installateur">En attente de l'installateur</option>
                         <option value="En attente retour service technique">En attente retour service technique</option>
                         <option value="Fermé">Fermé</option>
-                        <option value="Ouvert">Ouvert</option>
+                        <option value="En cours Service Client">En cours Service Client</option>
                       </select>
                     </div>
                   </div>

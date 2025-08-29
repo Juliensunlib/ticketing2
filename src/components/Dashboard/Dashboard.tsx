@@ -29,10 +29,10 @@ const Dashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'En cours Service Client': return 'text-green-600 bg-green-100';
       case 'En cours': return 'text-blue-600 bg-blue-100';
       case 'Résolu': return 'text-orange-600 bg-orange-100';
       case 'Fermé': return 'text-gray-600 bg-gray-100';
+      case 'En cours Service Client': return 'text-green-600 bg-green-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };

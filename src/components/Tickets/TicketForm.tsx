@@ -22,7 +22,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
     title: ticket?.title || '',
     description: ticket?.description || '',
     priority: (ticket?.priority || 'Moyenne') as 'Haute' | 'Moyenne' | 'Basse',
-    status: (ticket?.status || 'Nouveau') as 'Nouveau' | 'En attente du client' | 'En attente de l\'installateur' | 'En attente retour service technique' | 'Fermé' | 'Ouvert',
+    status: (ticket?.status || 'Nouveau') as 'Nouveau' | 'En attente du client' | 'En attente de l\'installateur' | 'En attente retour service technique' | 'Fermé' | 'En cours Service Client',
     type: (ticket?.type || 'SAV / question technique') as 'SAV / question technique' | 'Recouvrement' | 'Plainte Installateur' | 'changement date prélèvement/RIB' | 'Résiliation anticipée / cession de contrat' | 'Ajout contrat / Flexibilité',
     origin: (ticket?.origin || 'SunLib') as 'Installateur' | 'SunLib' | 'Abonné',
     channel: (ticket?.channel || 'Formulaire de contact') as 'Mail' | 'Téléphone' | 'Formulaire de contact' | 'Site abonné' | 'Application SunLib',
@@ -248,7 +248,7 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
                     <option value="En attente de l'installateur">En attente de l'installateur</option>
                     <option value="En attente retour service technique">En attente retour service technique</option>
                     <option value="Fermé">Fermé</option>
-                    <option value="Ouvert">Ouvert</option>
+                    <option value="En cours Service Client">En cours Service Client</option>
                   </select>
                 </div>
               </div>

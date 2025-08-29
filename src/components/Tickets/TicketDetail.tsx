@@ -235,7 +235,7 @@ L'équipe SunLib
       case 'En attente de l\'installateur': return 'text-orange-600 bg-orange-100 border-orange-200';
       case 'En attente retour service technique': return 'text-purple-600 bg-purple-100 border-purple-200';
       case 'Fermé': return 'text-gray-600 bg-gray-100 border-gray-200';
-      case 'Ouvert': return 'text-green-600 bg-green-100 border-green-200';
+      case 'En cours Service Client': return 'text-green-600 bg-green-100 border-green-200';
       default: return 'text-gray-600 bg-gray-100 border-gray-200';
     }
   };
@@ -813,7 +813,7 @@ L'équipe SunLib
                   <option value="En attente de l'installateur">En attente de l'installateur</option>
                   <option value="En attente retour service technique">En attente retour service technique</option>
                   <option value="Fermé">Fermé</option>
-                  <option value="Ouvert">Ouvert</option>
+                  <option value="En cours Service Client">En cours Service Client</option>
                 </select>
               </div>
 
