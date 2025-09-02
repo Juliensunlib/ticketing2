@@ -81,7 +81,8 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
     }
 
     // Créer le ticket
-    try {
+    const submitTicket = async () => {
+      try {
       console.log('💾 Sauvegarde du ticket...');
       
       const ticketData = {
@@ -103,11 +104,14 @@ const TicketForm: React.FC<TicketFormProps> = ({ ticket, onClose, onSuccess }) =
       onSuccess();
       onClose();
       
-    } catch (error) {
+      } catch (error) {
       console.error('❌ Erreur sauvegarde:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       setErrors({ general: `Erreur: ${errorMessage}` });
-    }
+      }
+    };
+
+    submitTicket();
   };
 
   const handleChange = (field: string, value: string) => {
