@@ -680,9 +680,6 @@ ${email.body || email.snippet}`;
                               className="text-sm text-blue-600 hover:text-blue-700 underline"
                             >
                               Rechercher "{manualEmail}" dans la base Airtable
-                              <div className="text-xs text-gray-500 mt-1">
-                                ID: {subscriber.id}
-                              </div>
                             </button>
                           </div>
                         )}
