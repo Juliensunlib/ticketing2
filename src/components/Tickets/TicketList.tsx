@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Eye, Edit, MessageCircle, Paperclip } from 'lucide-react';
+import { Search, Filter, Eye, Edit, MessageCircle, Paperclip, AlertCircle } from 'lucide-react';
 import { useTickets } from '../../hooks/useTickets';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { Ticket } from '../../types';
