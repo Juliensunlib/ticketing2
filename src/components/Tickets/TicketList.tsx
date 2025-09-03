@@ -203,6 +203,26 @@ const TicketList: React.FC<TicketListProps> = ({ onViewTicket, onEditTicket }) =
                         {ticket.attachments.length} pièce{ticket.attachments.length !== 1 ? 's' : ''} jointe{ticket.attachments.length !== 1 ? 's' : ''}
                       </div>
                     )}
+                    {ticket.status === 'Fermé' && (() => {
+                      // Chercher le commentaire de clôture
+                      const closureComment = ticket.comments.find(comment => 
+                        comment.content.includes('🔒 **Ticket fermé**') && 
+                        comment.content.includes('**Source de la problématique :**')
+                      );
+                      
+                      if (closureComment) {
+                        const sourceMatch = closureComment.content.match(/\*\*Source de la problématique :\*\* (.+)/);
+                        if (sourceMatch) {
+                          return (
+                            <div className="flex items-center text-xs text-red-600">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Source: {sourceMatch[1]}
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
                 
