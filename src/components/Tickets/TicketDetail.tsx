@@ -30,11 +30,23 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
   });
   const [showEmailReply, setShowEmailReply] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [showClosureForm, setShowClosureForm] = useState(false);
+  const [closureData, setClosureData] = useState({
+    source: '',
+    comment: ''
+  });
+  const [closureErrors, setClosureErrors] = useState<Record<string, string>>({});
 
   // Utiliser le ticket mis à jour depuis l'état global au lieu de la prop
   const currentTicket = tickets.find(t => t.id === ticket.id) || ticket;
 
   const handleStatusUpdate = async () => {
+    // Si on passe le statut à "Fermé", afficher le formulaire de clôture
+    if (editData.status === 'Fermé' && currentTicket.status !== 'Fermé') {
+      setShowClosureForm(true);
+      return;
+    }
+
     try {
       console.log('🔄 Sauvegarde des modifications...');
       
@@ -63,6 +75,65 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       alert(`Erreur lors de la mise à jour: ${errorMessage}`);
     }
+  };
+
+  const handleClosureSubmit = async () => {
+    // Validation de la source (obligatoire)
+    if (!closureData.source) {
+      setClosureErrors({ source: 'La source de la problématique est obligatoire' });
+      return;
+    }
+
+    try {
+      console.log('🔄 Fermeture du ticket avec données de clôture...');
+      
+      const updateData: any = {
+        status: 'Fermé',
+        priority: editData.priority,
+      };
+      
+      // Gérer l'assignation
+      if (editData.assignedTo === '') {
+        updateData.assigned_to = null;
+      } else if (editData.assignedTo) {
+        updateData.assigned_to = editData.assignedTo;
+      }
+      
+      await updateTicket(currentTicket.id, updateData);
+      
+      // Ajouter un commentaire de clôture
+      const closureComment = `🔒 **Ticket fermé**
+
+**Source de la problématique :** ${closureData.source}${closureData.comment ? `
+
+**Commentaire de clôture :**
+${closureData.comment}` : ''}
+
+---
+*Ticket fermé le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}*`;
+      
+      await addComment(currentTicket.id, closureComment);
+      
+      console.log('✅ Ticket fermé avec succès');
+      setShowClosureForm(false);
+      setClosureData({ source: '', comment: '' });
+      setClosureErrors({});
+      setIsEditing(false);
+      alert('Ticket fermé avec succès !');
+
+    } catch (error) {
+      console.error('❌ Erreur fermeture:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      alert(`Erreur lors de la fermeture: ${errorMessage}`);
+    }
+  };
+
+  const handleClosureCancel = () => {
+    setShowClosureForm(false);
+    setClosureData({ source: '', comment: '' });
+    setClosureErrors({});
+    // Remettre le statut à sa valeur précédente
+    setEditData(prev => ({ ...prev, status: currentTicket.status }));
   };
 
   const handleAddComment = () => {
@@ -841,18 +912,85 @@ L'équipe SunLib
                 </select>
               </div>
 
+              {/* Formulaire de clôture */}
+              {showClosureForm && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+                    <h4 className="text-sm font-medium text-red-900">Fermeture du ticket</h4>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Source de la problématique *
+                    </label>
+                    <select
+                      value={closureData.source}
+                      onChange={(e) => {
+                        setClosureData(prev => ({ ...prev, source: e.target.value }));
+                        if (closureErrors.source) {
+                          setClosureErrors(prev => ({ ...prev, source: '' }));
+                        }
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
+                        closureErrors.source ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Sélectionnez la source</option>
+                      <option value="SunLib">SunLib</option>
+                      <option value="Partenaire">Partenaire</option>
+                      <option value="Abonné">Abonné</option>
+                      <option value="Non applicable">Non applicable</option>
+                    </select>
+                    {closureErrors.source && (
+                      <p className="text-red-500 text-sm mt-1">{closureErrors.source}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Commentaire de clôture (facultatif)
+                    </label>
+                    <textarea
+                      value={closureData.comment}
+                      onChange={(e) => setClosureData(prev => ({ ...prev, comment: e.target.value }))}
+                      placeholder="Détails sur la résolution, actions prises, etc..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleClosureSubmit}
+                      className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm"
+                    >
+                      Fermer le ticket
+                    </button>
+                    <button
+                      onClick={handleClosureCancel}
+                      className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors text-sm"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex space-x-2 pt-4">
+                {!showClosureForm && (
                 <button
                   onClick={handleStatusUpdate}
                   className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
                 >
                   Sauvegarder
                 </button>
+                )}
                 <button
                   onClick={() => setIsEditing(false)}
                   className="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
                 >
-                  Annuler
+                  {showClosureForm ? 'Fermer' : 'Annuler'}
                 </button>
               </div>
             </div>
