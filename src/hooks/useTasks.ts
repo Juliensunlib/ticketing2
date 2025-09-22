@@ -169,13 +169,24 @@ export const useTasks = () => {
       if (updates.status !== undefined) updateData.status = updates.status;
       if (updates.priority !== undefined) updateData.priority = updates.priority;
 
+      const { data, error: supabaseError } = await supabase
+        .from('user_tasks')
+        .update(updateData)
+        .eq('id', taskId)
+        .eq('created_by', user.id)
+        .select(`
+          *,
+          created_by_user:users!user_tasks_created_by_fkey(name, email),
+          related_ticket:tickets(ticket_number, title)
+        `)
+        .single();
+
       if (supabaseError) {
         throw supabaseError;
       }
 
       console.log('✅ Tâche mise à jour avec succès:', data);
       await loadTasks(); // Recharger la liste
-        .eq('created_by', user.id)
     } catch (err) {
       console.error('❌ Erreur lors de la mise à jour de la tâche:', err);
       throw err;
