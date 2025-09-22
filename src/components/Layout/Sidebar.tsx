@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Plus, Users, Settings, BarChart3, FileText, Mail } from 'lucide-react';
+import { Home, Plus, Users, Settings, BarChart3, FileText, Mail, CheckSquare } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 
@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'create', label: 'Nouveau Ticket', icon: Plus },
     { id: 'tickets', label: 'Tous les Tickets', icon: FileText },
+    { id: 'tasks', label: 'Mes Tâches', icon: CheckSquare },
     { id: 'emails', label: 'Emails Abonnés', icon: Mail },
     { id: 'analytics', label: 'Statistiques', icon: BarChart3 },
     ...(isAdmin ? [{ id: 'settings', label: 'Paramètres', icon: Settings }] : []),

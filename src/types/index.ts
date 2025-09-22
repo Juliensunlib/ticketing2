@@ -54,3 +54,34 @@ export interface AirtableConfig {
   contratAbonne: string; // SL-000001 format
   nomEntreprise?: string; // from Installateur
 }
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  createdBy: string;
+  ticketId?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdByUser?: {
+    name: string;
+    email: string;
+  };
+  relatedTicket?: {
+    ticketNumber: number;
+    title: string;
+  };
+}
+
+export interface TaskNotification {
+  id: string;
+  taskId: string;
+  userId: string;
+  notificationDate: string;
+  isSent: boolean;
+  createdAt: string;
+  task?: Task;
+}

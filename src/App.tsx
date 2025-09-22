@@ -11,6 +11,7 @@ import GmailIntegration from './components/Gmail/GmailIntegration';
 import TicketFormFromEmail from './components/Tickets/TicketFormFromEmail';
 import Settings from './components/Settings/Settings';
 import AdvancedAnalytics from './components/Analytics/AdvancedAnalytics';
+import TaskList from './components/Tasks/TaskList';
 import { Ticket } from './types';
 import { useTickets } from './hooks/useTickets';
 import { useSupabaseUsers } from './hooks/useSupabaseUsers';
@@ -118,6 +119,8 @@ const AppContent: React.FC = () => {
         return <Dashboard />;
       case 'tickets':
         return <TicketList onViewTicket={handleViewTicket} onEditTicket={handleEditTicket} />;
+      case 'tasks':
+        return <TaskList />;
       case 'emails':
         return <GmailIntegration onCreateTicketFromEmail={handleCreateTicketFromEmail} />;
       case 'settings':
