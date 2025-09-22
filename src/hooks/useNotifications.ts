@@ -21,7 +21,7 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const { users } = useSupabaseUsers();
   const { tickets } = useTickets();
-  const { taskNotifications } = useTasks();
+  const { tasks, taskNotifications } = useTasks();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [lastCheckedTickets, setLastCheckedTickets] = useState<string[]>([]);
 
@@ -63,17 +63,32 @@ export const useNotifications = () => {
     }));
 
     // Ajouter les notifications de tâches
-    const taskNotifs: Notification[] = taskNotifications.map(taskNotif => ({
-      id: `task_${taskNotif.id}`,
-      ticketId: taskNotif.task?.ticketId || '',
-      ticketNumber: taskNotif.task?.relatedTicket?.ticketNumber || 0,
-      title: taskNotif.task?.title || 'Tâche sans titre',
+    const today = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter(task => 
+      task.dueDate === today && 
+      task.status !== 'completed' && 
+      task.status !== 'cancelled'
+    );
+
+    console.log('🔍 DEBUG Notifications tâches:');
+    console.log('🔍 Date aujourd\'hui:', today);
+    console.log('🔍 Toutes les tâches:', tasks);
+    console.log('🔍 Tâches pour aujourd\'hui:', todayTasks);
+    console.log('🔍 Task notifications from DB:', taskNotifications);
+
+    const taskNotifs: Notification[] = todayTasks.map(task => ({
+      id: `task_${task.id}`,
+      ticketId: task.ticketId || '',
+      ticketNumber: task.relatedTicket?.ticketNumber || 0,
+      title: task.title,
       subscriberName: 'Tâche personnelle',
       type: 'mention',
-      message: `Tâche à réaliser aujourd'hui : ${taskNotif.task?.title}`,
+      message: `Tâche à réaliser aujourd'hui : ${task.title}`,
       isRead: false,
-      createdAt: taskNotif.createdAt
+      createdAt: task.createdAt
     }));
+
+    console.log('🔍 Notifications de tâches créées:', taskNotifs);
 
     // Fusionner avec les notifications existantes
     const allNotifications = [...existingNotifications, ...newNotifications, ...taskNotifs];
