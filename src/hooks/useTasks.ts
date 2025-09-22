@@ -147,7 +147,12 @@ export const useTasks = () => {
     }
 
     try {
+      console.log('🔍 DEBUG - Création de tâche');
+      console.log('🔍 User auth ID:', user.id);
+      console.log('🔍 User email:', user.email);
+      
       const currentUserId = await getCurrentUserId();
+      console.log('🔍 Current user ID from users table:', currentUserId);
       
       const { data, error } = await supabase
         .from('user_tasks')
@@ -167,6 +172,7 @@ export const useTasks = () => {
         .single();
 
       if (error) {
+        console.error('🔍 Erreur Supabase détaillée:', error);
         throw error;
       }
 
