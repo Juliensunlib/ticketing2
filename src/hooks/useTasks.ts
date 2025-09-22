@@ -266,6 +266,8 @@ export const useTasks = () => {
       loadTasks();
       // loadTaskNotifications(); // Désactivé temporairement pour debug
     }
+  }
+  )
 
   return {
     tasks,
