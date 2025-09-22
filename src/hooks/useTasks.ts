@@ -266,8 +266,7 @@ export const useTasks = () => {
       loadTasks();
       loadTaskNotifications();
     }
-  }
-  )
+  }, [user, users]);
 
   return {
     tasks,
