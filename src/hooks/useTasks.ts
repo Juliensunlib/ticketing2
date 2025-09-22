@@ -73,18 +73,6 @@ export const useTasks = () => {
     if (!user) return;
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) {
-        console.error('Utilisateur non trouvé dans la base de données');
-        return;
-      }
-
       const { data, error } = await supabase
         .from('task_notifications')
         .select(`
@@ -96,7 +84,7 @@ export const useTasks = () => {
           )
         `)
         .eq('is_sent', false)
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .lte('notification_date', new Date().toISOString().split('T')[0]);
 
       if (error) {
@@ -138,17 +126,6 @@ export const useTasks = () => {
     }
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -157,7 +134,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: currentUser.id,
+          created_by: user.id,
           ticket_id: taskData.ticketId || null
         })
         .select(`
@@ -182,17 +159,6 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
       const updateData: any = {};
       
       if (updates.title !== undefined) updateData.title = updates.title;
@@ -205,7 +171,7 @@ export const useTasks = () => {
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', currentUser.id)
+        .eq('created_by', user.id)
         .select(`
           *,
           created_by_user:users!user_tasks_created_by_fkey(name, email),
