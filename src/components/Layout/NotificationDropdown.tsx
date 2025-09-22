@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Eye, Trash2, FileText, User, Calendar, CheckSquare } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications';
+import { useTasks } from '../../hooks/useTasks';
 import { Ticket } from '../../types';
+import TaskForm from '../Tasks/TaskForm';
 
 interface NotificationDropdownProps {
   onViewTicket: (ticketId: string) => void;
@@ -9,7 +11,9 @@ interface NotificationDropdownProps {
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onViewTicket }) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification, clearAllNotifications } = useNotifications();
+  const { tasks } = useTasks();
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fermer le dropdown quand on clique à l'extérieur
@@ -26,7 +30,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onViewTicke
 
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
-    onViewTicket(notification.ticketId);
+    
+    if (notification.ticketId) {
+      // C'est une notification de ticket
+      onViewTicket(notification.ticketId);
+    } else {
+      // C'est une notification de tâche
+      const taskTitle = notification.title;
+      const task = tasks.find(t => t.title === taskTitle);
+      if (task) {
+        setSelectedTask(task);
+      }
+    }
     setIsOpen(false);
   };
 
@@ -193,6 +208,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onViewTicke
             </div>
           )}
         </div>
+      )}
+
+      {/* Modale de tâche */}
+      {selectedTask && (
+        <TaskForm
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onSuccess={() => {
+            setSelectedTask(null);
+            // Optionnel : recharger les notifications
+          }}
+        />
       )}
     </div>
   );
