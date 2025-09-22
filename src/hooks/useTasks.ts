@@ -128,17 +128,6 @@ export const useTasks = () => {
     }
 
     try {
-      // Récupérer l'ID utilisateur depuis la table public.users
-      const { data: currentUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (userError || !currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
       const { data, error: supabaseError } = await supabase
         .from('user_tasks')
         .insert([{
@@ -147,7 +136,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: currentUser.id,
+          created_by: user?.id,
           ticket_id: taskData.ticketId || null
         }])
         .select(`
@@ -172,17 +161,6 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
-      // Récupérer l'ID utilisateur depuis la table public.users
-      const { data: currentUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (userError || !currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
       const updateData: any = {};
       
       if (updates.title !== undefined) updateData.title = updates.title;
@@ -195,7 +173,7 @@ export const useTasks = () => {
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', currentUser.id)
+        .eq('created_by', user?.id)
         .select(`
           *,
           created_by_user:users!user_tasks_created_by_fkey(name, email),
