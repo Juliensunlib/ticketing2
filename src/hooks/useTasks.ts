@@ -266,6 +266,8 @@ export const useTasks = () => {
       loadTasks();
       loadTaskNotifications();
     }
+  }
+  )
 
   return {
     tasks,
