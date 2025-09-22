@@ -73,20 +73,9 @@ export const useTasks = () => {
     if (!user) return;
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
+      if (!user?.email) return;
 
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
-      const today = new Date().toISOString().split('T')[0];
-
-      const { data, error: supabaseError } = await supabase
+      const { data, error } = await supabase
         .from('task_notifications')
         .select(`
           *,
@@ -96,12 +85,12 @@ export const useTasks = () => {
             related_ticket:tickets(ticket_number, title)
           )
         `)
-        .eq('user_id', currentUser.id)
-        .eq('notification_date', today)
-        .eq('is_sent', false);
+        .eq('is_sent', false)
+        .eq('user_id', user.id)
+        .lte('notification_date', new Date().toISOString().split('T')[0]);
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (error) {
+        throw error;
       }
 
       const formattedNotifications: TaskNotification[] = (data || []).map(notification => ({
@@ -139,28 +128,19 @@ export const useTasks = () => {
     }
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
+      if (!user?.email) throw new Error('Utilisateur non connecté');
 
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
-
-      const { data, error: supabaseError } = await supabase
+      const { data, error } = await supabase
         .from('user_tasks')
-        .insert([{
+        .insert({
           title: taskData.title,
           description: taskData.description,
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: currentUser.id,
+          created_by: user.id,
           ticket_id: taskData.ticketId || null
-        }])
+        })
         .select(`
           *,
           created_by_user:users!user_tasks_created_by_fkey(name, email),
@@ -168,8 +148,8 @@ export const useTasks = () => {
         `)
         .single();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (error) {
+        throw error;
       }
 
       console.log('✅ Tâche créée avec succès:', data);
@@ -183,16 +163,7 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user?.email)
-        .single();
-
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé dans la base de données');
-      }
+      if (!user?.email) throw new Error('Utilisateur non connecté');
 
       const updateData: any = {};
       
@@ -202,11 +173,11 @@ export const useTasks = () => {
       if (updates.status !== undefined) updateData.status = updates.status;
       if (updates.priority !== undefined) updateData.priority = updates.priority;
 
-      const { data, error: supabaseError } = await supabase
+      const { data, error } = await supabase
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', currentUser.id)
+        .eq('created_by', user.id)
         .select(`
           *,
           created_by_user:users!user_tasks_created_by_fkey(name, email),
@@ -214,8 +185,8 @@ export const useTasks = () => {
         `)
         .single();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (error) {
+        throw error;
       }
 
       console.log('✅ Tâche mise à jour avec succès:', data);
