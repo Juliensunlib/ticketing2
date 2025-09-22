@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useSupabaseUsers } from './useSupabaseUsers';
 import { Task, TaskNotification } from '../types';
 
 export const useTasks = () => {
