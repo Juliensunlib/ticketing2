@@ -3,6 +3,21 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Task, TaskNotification } from '../types';
 
+// Helper function to get the correct user ID from public.users table
+const getCurrentPublicUserId = async (userEmail: string): Promise<string> => {
+  const { data: currentUser, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', userEmail)
+    .single();
+
+  if (error || !currentUser) {
+    throw new Error('Utilisateur non trouvé dans la base de données');
+  }
+
+  return currentUser.id;
+};
+
 export const useTasks = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -19,16 +34,7 @@ export const useTasks = () => {
     try {
       console.log('Chargement des tâches utilisateur...');
       
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé');
-      }
+      const currentUserId = await getCurrentPublicUserId(user.email!);
 
       const { data, error: supabaseError } = await supabase
         .from('user_tasks')
@@ -37,7 +43,7 @@ export const useTasks = () => {
           created_by_user:users!user_tasks_created_by_fkey(name, email),
           related_ticket:tickets(ticket_number, title)
         `)
-        .eq('created_by', currentUser.id)
+        .eq('created_by', currentUserId)
         .order('due_date', { ascending: true });
 
       if (supabaseError) {
@@ -73,6 +79,8 @@ export const useTasks = () => {
     if (!user) return;
 
     try {
+      const currentUserId = await getCurrentPublicUserId(user.email!);
+
       const { data, error } = await supabase
         .from('task_notifications')
         .select(`
@@ -84,7 +92,7 @@ export const useTasks = () => {
           )
         `)
         .eq('is_sent', false)
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .lte('notification_date', new Date().toISOString().split('T')[0]);
 
       if (error) {
@@ -126,6 +134,8 @@ export const useTasks = () => {
     }
 
     try {
+      const currentUserId = await getCurrentPublicUserId(user.email!);
+
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -134,7 +144,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: user.id,
+          created_by: currentUserId,
           ticket_id: taskData.ticketId || null
         })
         .select(`
@@ -159,6 +169,8 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
+      const currentUserId = await getCurrentPublicUserId(user.email!);
+
       const updateData: any = {};
       
       if (updates.title !== undefined) updateData.title = updates.title;
@@ -171,7 +183,7 @@ export const useTasks = () => {
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', user.id)
+        .eq('created_by', currentUserId)
         .select(`
           *,
           created_by_user:users!user_tasks_created_by_fkey(name, email),
@@ -193,10 +205,13 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
+      const currentUserId = await getCurrentPublicUserId(user.email!);
+
       const { error: supabaseError } = await supabase
         .from('user_tasks')
         .delete()
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .eq('created_by', currentUserId);
 
       if (supabaseError) {
         throw supabaseError;
