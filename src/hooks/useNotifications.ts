@@ -24,6 +24,7 @@ export const useNotifications = () => {
   const { tasks, taskNotifications } = useTasks();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [lastCheckedTickets, setLastCheckedTickets] = useState<string[]>([]);
+  const [lastCheckedTasks, setLastCheckedTasks] = useState<string[]>([]);
 
   // Trouver l'utilisateur actuel dans la liste des utilisateurs
   const currentUser = users.find(u => u.email === user?.email);
@@ -43,6 +44,11 @@ export const useNotifications = () => {
       ? JSON.parse(storedCheckedTickets) 
       : [];
 
+    // Récupérer les tâches déjà vérifiées
+    const storedCheckedTasks = localStorage.getItem(`checked_tasks_${currentUser.id}`);
+    const checkedTasks: string[] = storedCheckedTasks 
+      ? JSON.parse(storedCheckedTasks) 
+      : [];
     // Trouver les nouveaux tickets assignés à l'utilisateur
     const newAssignedTickets = tickets.filter(ticket => 
       ticket.assignedTo === currentUser.id && 
@@ -62,19 +68,19 @@ export const useNotifications = () => {
       createdAt: new Date().toISOString()
     }));
 
-    // Ajouter les notifications de tâches
+    // Ajouter les notifications de tâches (seulement les nouvelles)
     const today = new Date().toISOString().split('T')[0];
     const todayTasks = tasks.filter(task => 
       task.dueDate === today && 
       task.status !== 'completed' && 
-      task.status !== 'cancelled'
+      task.status !== 'cancelled' &&
+      !checkedTasks.includes(task.id)
     );
 
     console.log('🔍 DEBUG Notifications tâches:');
     console.log('🔍 Date aujourd\'hui:', today);
-    console.log('🔍 Toutes les tâches:', tasks);
+    console.log('🔍 Tâches déjà vérifiées:', checkedTasks);
     console.log('🔍 Tâches pour aujourd\'hui:', todayTasks);
-    console.log('🔍 Task notifications from DB:', taskNotifications);
 
     const taskNotifs: Notification[] = todayTasks.map(task => ({
       id: `task_${task.id}`,
@@ -98,18 +104,30 @@ export const useNotifications = () => {
       notification.ticketId === '' || tickets.some(ticket => ticket.id === notification.ticketId)
     );
 
+    // Supprimer les doublons de notifications de tâches
+    const uniqueNotifications = validNotifications.filter((notification, index, self) => {
+      if (notification.ticketId === '') {
+        // Pour les tâches, garder seulement la première occurrence de chaque tâche
+        return self.findIndex(n => n.id === notification.id) === index;
+      }
+      return true;
+    });
     // Mettre à jour l'état
-    setNotifications(validNotifications);
+    setNotifications(uniqueNotifications);
     
     // Mettre à jour la liste des tickets vérifiés
     const allTicketIds = tickets.map(t => t.id);
     setLastCheckedTickets(allTicketIds);
 
+    // Mettre à jour la liste des tâches vérifiées
+    const allTaskIds = tasks.map(t => t.id);
+    setLastCheckedTasks(allTaskIds);
     // Sauvegarder dans localStorage
-    localStorage.setItem(`notifications_${currentUser.id}`, JSON.stringify(validNotifications));
+    localStorage.setItem(`notifications_${currentUser.id}`, JSON.stringify(uniqueNotifications));
     localStorage.setItem(`checked_tickets_${currentUser.id}`, JSON.stringify(allTicketIds));
+    localStorage.setItem(`checked_tasks_${currentUser.id}`, JSON.stringify(allTaskIds));
 
-  }, [tickets, taskNotifications, currentUser]);
+  }, [tickets, tasks, currentUser]);
 
   const markAsRead = (notificationId: string) => {
     if (!currentUser) return;
@@ -152,6 +170,8 @@ export const useNotifications = () => {
 
     setNotifications([]);
     localStorage.setItem(`notifications_${currentUser.id}`, JSON.stringify([]));
+    // Réinitialiser aussi les tâches vérifiées pour permettre de nouvelles notifications
+    localStorage.setItem(`checked_tasks_${currentUser.id}`, JSON.stringify([]));
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
