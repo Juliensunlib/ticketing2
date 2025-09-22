@@ -264,9 +264,9 @@ export const useTasks = () => {
   useEffect(() => {
     if (user) {
       loadTasks();
-      // loadTaskNotifications(); // Désactivé temporairement pour debug
+      loadTaskNotifications();
     }
-  }
+  }, [user, users]);
   )
 
   return {
