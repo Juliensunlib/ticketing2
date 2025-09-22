@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X, Eye, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { Bell, X, Eye, Trash2, FileText, User, Calendar, CheckSquare } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications';
 import { Ticket } from '../../types';
 
@@ -127,10 +127,21 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onViewTicke
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <FileText className="w-4 h-4 text-orange-500" />
-                            <span className="text-sm font-medium text-gray-900">
-                              Ticket #{notification.ticketNumber}
-                            </span>
+                            {notification.ticketNumber > 0 ? (
+                              <>
+                                <FileText className="w-4 h-4 text-orange-500" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  Ticket #{notification.ticketNumber}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckSquare className="w-4 h-4 text-blue-500" />
+                                <span className="text-sm font-medium text-gray-900">
+                                  Tâche personnelle
+                                </span>
+                              </>
+                            )}
                             {!notification.isRead && (
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             )}

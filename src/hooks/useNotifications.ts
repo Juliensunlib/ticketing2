@@ -78,8 +78,8 @@ export const useNotifications = () => {
 
     const taskNotifs: Notification[] = todayTasks.map(task => ({
       id: `task_${task.id}`,
-      ticketId: task.ticketId || '',
-      ticketNumber: task.relatedTicket?.ticketNumber || 0,
+      ticketId: '',
+      ticketNumber: 0,
       title: task.title,
       subscriberName: 'Tâche personnelle',
       type: 'mention',
