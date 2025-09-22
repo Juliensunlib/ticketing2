@@ -457,7 +457,18 @@ class GmailService {
     try {
       // Gmail utilise base64url, on doit le convertir en base64 standard
       const base64 = data.replace(/-/g, '+').replace(/_/g, '/');
-      return decodeURIComponent(escape(atob(base64)));
+      
+      // Décoder le base64
+      const binaryString = atob(base64);
+      
+      // Convertir en Uint8Array
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Décoder en UTF-8
+      return new TextDecoder('utf-8').decode(bytes);
     } catch (error) {
       console.error('❌ Erreur décodage base64:', error);
       return data;
