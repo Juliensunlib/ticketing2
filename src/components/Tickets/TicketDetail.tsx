@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { X, Edit, MessageCircle, Paperclip, Clock, User, Building, Phone, Mail, Calendar, Tag, AlertCircle, ExternalLink, Send, Plus, AtSign } from 'lucide-react';
+import { X, Edit, MessageCircle, Paperclip, Clock, User, Building, Phone, Mail, Calendar, Tag, AlertCircle, ExternalLink, Send, Plus, AtSign, CheckSquare } from 'lucide-react';
 import { Ticket } from '../../types';
 import { useTickets } from '../../hooks/useTickets';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSupabaseUsers } from '../../hooks/useSupabaseUsers';
 import { useAirtable } from '../../hooks/useAirtable';
+import TaskForm from '../Tasks/TaskForm';
 import gmailService from '../../services/gmailService';
 
 interface TicketDetailProps {
@@ -31,6 +32,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose }) => {
   const [showEmailReply, setShowEmailReply] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [showClosureForm, setShowClosureForm] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const [closureData, setClosureData] = useState({
     source: '',
     comment: ''
@@ -465,6 +467,14 @@ L'équipe SunLib
                 </div>
               </div>
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowTaskForm(true)}
+                  className="px-4 py-2 border border-orange-300 hover:bg-orange-50 text-orange-700 rounded-lg transition-colors flex items-center"
+                  title="Créer une tâche depuis ce ticket"
+                >
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  Créer une tâche
+                </button>
                 <button
                   onClick={() => setIsEditing(!isEditing)}
                   className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
@@ -1044,6 +1054,18 @@ L'équipe SunLib
           </div>
         )}
       </div>
+
+      {/* Modale de création de tâche */}
+      {showTaskForm && (
+        <TaskForm
+          ticketId={currentTicket.id}
+          onClose={() => setShowTaskForm(false)}
+          onSuccess={() => {
+            setShowTaskForm(false);
+            alert('Tâche créée avec succès !');
+          }}
+        />
+      )}
     </div>
   );
 };
