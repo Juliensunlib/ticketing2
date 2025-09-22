@@ -5,18 +5,46 @@ import { Task, TaskNotification } from '../types';
 
 export const useTasks = () => {
   const { user } = useAuth();
+  const { users } = useSupabaseUsers();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskNotifications, setTaskNotifications] = useState<TaskNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to get current user ID from public.users table
+  const getCurrentUserId = async (): Promise<string> => {
+    if (!user?.email) {
+      throw new Error('Utilisateur non connecté');
+    }
+
+    // First try to find user in the users we already have loaded
+    const existingUser = users.find(u => u.email === user.email);
+    if (existingUser) {
+      return existingUser.id;
+    }
+
+    // If not found in loaded users, query directly
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (error || !userData) {
+      throw new Error(`Utilisateur avec l'email ${user.email} non trouvé dans la base de données. Veuillez contacter l'administrateur.`);
+    }
+
+    return userData.id;
+  };
+
   const loadTasks = async () => {
-    if (!user) return;
+    if (!user?.email) return;
 
     setLoading(true);
     setError(null);
 
     try {
+      const currentUserId = await getCurrentUserId();
       console.log('Chargement des tâches utilisateur...');
       
       const { data, error: supabaseError } = await supabase
@@ -25,7 +53,7 @@ export const useTasks = () => {
           *,
           related_ticket:tickets(ticket_number, title)
         `)
-        .eq('created_by', user.id)
+        .eq('created_by', currentUserId)
         .order('due_date', { ascending: true });
 
       if (supabaseError) {
@@ -43,7 +71,10 @@ export const useTasks = () => {
         ticketId: task.ticket_id,
         createdAt: task.created_at,
         updatedAt: task.updated_at,
-        createdByUser: { name: user.email?.split('@')[0] || 'Utilisateur', email: user.email || '' },
+        createdByUser: { 
+          name: users.find(u => u.id === task.created_by)?.name || user.email?.split('@')[0] || 'Utilisateur', 
+          email: user.email || '' 
+        },
         relatedTicket: task.related_ticket
       }));
 
@@ -58,9 +89,11 @@ export const useTasks = () => {
   };
 
   const loadTaskNotifications = async () => {
-    if (!user) return;
+    if (!user?.email) return;
 
     try {
+      const currentUserId = await getCurrentUserId();
+      
       const { data, error } = await supabase
         .from('task_notifications')
         .select(`
@@ -71,7 +104,7 @@ export const useTasks = () => {
           )
         `)
         .eq('is_sent', false)
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .lte('notification_date', new Date().toISOString().split('T')[0]);
 
       if (error) {
@@ -108,11 +141,13 @@ export const useTasks = () => {
   };
 
   const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdByUser' | 'relatedTicket'>) => {
-    if (!user) {
+    if (!user?.email) {
       throw new Error('Utilisateur non connecté');
     }
 
     try {
+      const currentUserId = await getCurrentUserId();
+      
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -121,7 +156,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: user.id,
+          created_by: currentUserId,
           ticket_id: taskData.ticketId || null
         })
         .select(`
@@ -145,6 +180,8 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
+      const currentUserId = await getCurrentUserId();
+      
       const updateData: any = {};
       
       if (updates.title !== undefined) updateData.title = updates.title;
@@ -157,7 +194,7 @@ export const useTasks = () => {
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', user.id)
+        .eq('created_by', currentUserId)
         .select(`
           *,
           related_ticket:tickets(ticket_number, title)
@@ -178,11 +215,13 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
+      const currentUserId = await getCurrentUserId();
+      
       const { error: supabaseError } = await supabase
         .from('user_tasks')
         .delete()
         .eq('id', taskId)
-        .eq('created_by', user.id);
+        .eq('created_by', currentUserId);
 
       if (supabaseError) {
         throw supabaseError;
