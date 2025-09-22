@@ -3,21 +3,6 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Task, TaskNotification } from '../types';
 
-// Helper function to get the correct user ID from public.users table
-const getCurrentPublicUserId = async (userEmail: string): Promise<string> => {
-  const { data: currentUser, error } = await supabase
-    .from('users')
-    .select('id')
-    .eq('email', userEmail)
-    .single();
-
-  if (error || !currentUser) {
-    throw new Error('Utilisateur non trouvé dans la base de données');
-  }
-
-  return currentUser.id;
-};
-
 export const useTasks = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -34,16 +19,13 @@ export const useTasks = () => {
     try {
       console.log('Chargement des tâches utilisateur...');
       
-      const currentUserId = await getCurrentPublicUserId(user.email!);
-
       const { data, error: supabaseError } = await supabase
         .from('user_tasks')
         .select(`
           *,
-          created_by_user:users!user_tasks_created_by_fkey(name, email),
           related_ticket:tickets(ticket_number, title)
         `)
-        .eq('created_by', currentUserId)
+        .eq('created_by', user.id)
         .order('due_date', { ascending: true });
 
       if (supabaseError) {
@@ -61,7 +43,7 @@ export const useTasks = () => {
         ticketId: task.ticket_id,
         createdAt: task.created_at,
         updatedAt: task.updated_at,
-        createdByUser: task.created_by_user,
+        createdByUser: { name: user.email?.split('@')[0] || 'Utilisateur', email: user.email || '' },
         relatedTicket: task.related_ticket
       }));
 
@@ -79,20 +61,17 @@ export const useTasks = () => {
     if (!user) return;
 
     try {
-      const currentUserId = await getCurrentPublicUserId(user.email!);
-
       const { data, error } = await supabase
         .from('task_notifications')
         .select(`
           *,
           task:user_tasks(
             *,
-            created_by_user:users!user_tasks_created_by_fkey(name, email),
             related_ticket:tickets(ticket_number, title)
           )
         `)
         .eq('is_sent', false)
-        .eq('user_id', currentUserId)
+        .eq('user_id', user.id)
         .lte('notification_date', new Date().toISOString().split('T')[0]);
 
       if (error) {
@@ -117,7 +96,7 @@ export const useTasks = () => {
           ticketId: notification.task.ticket_id,
           createdAt: notification.task.created_at,
           updatedAt: notification.task.updated_at,
-          createdByUser: notification.task.created_by_user,
+          createdByUser: { name: user.email?.split('@')[0] || 'Utilisateur', email: user.email || '' },
           relatedTicket: notification.task.related_ticket
         } : undefined
       }));
@@ -134,8 +113,6 @@ export const useTasks = () => {
     }
 
     try {
-      const currentUserId = await getCurrentPublicUserId(user.email!);
-
       const { data, error } = await supabase
         .from('user_tasks')
         .insert({
@@ -144,12 +121,11 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: currentUserId,
+          created_by: user.id,
           ticket_id: taskData.ticketId || null
         })
         .select(`
           *,
-          created_by_user:users!user_tasks_created_by_fkey(name, email),
           related_ticket:tickets(ticket_number, title)
         `)
         .single();
@@ -169,8 +145,6 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>>) => {
     try {
-      const currentUserId = await getCurrentPublicUserId(user.email!);
-
       const updateData: any = {};
       
       if (updates.title !== undefined) updateData.title = updates.title;
@@ -183,10 +157,9 @@ export const useTasks = () => {
         .from('user_tasks')
         .update(updateData)
         .eq('id', taskId)
-        .eq('created_by', currentUserId)
+        .eq('created_by', user.id)
         .select(`
           *,
-          created_by_user:users!user_tasks_created_by_fkey(name, email),
           related_ticket:tickets(ticket_number, title)
         `)
         .single();
@@ -205,13 +178,11 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const currentUserId = await getCurrentPublicUserId(user.email!);
-
       const { error: supabaseError } = await supabase
         .from('user_tasks')
         .delete()
         .eq('id', taskId)
-        .eq('created_by', currentUserId);
+        .eq('created_by', user.id);
 
       if (supabaseError) {
         throw supabaseError;
