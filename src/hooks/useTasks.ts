@@ -73,15 +73,6 @@ export const useTasks = () => {
     if (!user) return;
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) return;
-
       const today = new Date().toISOString().split('T')[0];
 
       const { data, error: supabaseError } = await supabase
@@ -94,7 +85,7 @@ export const useTasks = () => {
             related_ticket:tickets(ticket_number, title)
           )
         `)
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .eq('notification_date', today)
         .eq('is_sent', false);
 
@@ -137,17 +128,6 @@ export const useTasks = () => {
     }
 
     try {
-      // Récupérer l'utilisateur depuis la table users
-      const { data: currentUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!currentUser) {
-        throw new Error('Utilisateur non trouvé');
-      }
-
       const { data, error: supabaseError } = await supabase
         .from('user_tasks')
         .insert([{
@@ -156,7 +136,7 @@ export const useTasks = () => {
           due_date: taskData.dueDate,
           status: taskData.status,
           priority: taskData.priority,
-          created_by: currentUser.id,
+          created_by: user.id,
           ticket_id: taskData.ticketId || null
         }])
         .select(`
@@ -189,24 +169,13 @@ export const useTasks = () => {
       if (updates.status !== undefined) updateData.status = updates.status;
       if (updates.priority !== undefined) updateData.priority = updates.priority;
 
-      const { data, error: supabaseError } = await supabase
-        .from('user_tasks')
-        .update(updateData)
-        .eq('id', taskId)
-        .select(`
-          *,
-          created_by_user:users!user_tasks_created_by_fkey(name, email),
-          related_ticket:tickets(ticket_number, title)
-        `)
-        .single();
-
       if (supabaseError) {
         throw supabaseError;
       }
 
       console.log('✅ Tâche mise à jour avec succès:', data);
       await loadTasks(); // Recharger la liste
-      return data;
+        .eq('created_by', user.id)
     } catch (err) {
       console.error('❌ Erreur lors de la mise à jour de la tâche:', err);
       throw err;
